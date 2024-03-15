@@ -7,6 +7,8 @@ import {
   DynamicWagmiConnector,
   EthersExtension,
 } from "../lib/dynamic";
+import Navbar from "./navbar";
+import { cn } from "../lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,7 +32,10 @@ export default function RootLayout({
         }}
       >
         <DynamicWagmiConnector>
-          <body className={inter.className}>{children}</body>
+          <body className={cn(inter.className, "flex flex-col")}>
+            <Navbar />
+            {children}
+          </body>
         </DynamicWagmiConnector>
       </DynamicContextProvider>
     </html>
