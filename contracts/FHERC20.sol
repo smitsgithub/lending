@@ -17,7 +17,8 @@ contract FHERC20 is IFHERC20, ERC20, Permissioned {
     mapping(address => euint16) internal _encBalances;
     // A mapping from address (owner) to a mapping of address (spender) to an encrypted amount.
     mapping(address => mapping(address => euint16)) private _allowed;
-    euint16 internal totalEncryptedSupply = FHE.asEuint16(0);
+    //TEST PUBLIC
+    euint16 public totalEncryptedSupply = FHE.asEuint16(0);
 
     constructor(
         string memory name,

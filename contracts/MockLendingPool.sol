@@ -32,12 +32,12 @@ contract MockLendingPool is LendingPool {
     userData.borrowShares = _borrowShares;
   }
 
-  function setPoolReserves(FHERC20 _token, ueint16 _amount) external {
+  function setPoolReserves(FHERC20 _token, euint16 _amount) external {
     Pool storage pool = pools[address(_token)];
     pool.poolReserves = _amount;
   }
 
-  function mintEncryptedAlToken(FHERC20 _token, address _recipient, inEuint16 _amount) external {
+  function mintEncryptedAlToken(FHERC20 _token, address _recipient, inEuint16 calldata _amount) external {
     Pool storage pool = pools[address(_token)];
     pool.alToken.mintEncrypted(_recipient, _amount);
   }
@@ -45,7 +45,7 @@ contract MockLendingPool is LendingPool {
   function burnEncryptedAlToken(
     FHERC20 _token,
     address _user,
-    inEuint16 _amount
+    inEuint16 calldata _amount
   ) external {
     Pool storage pool = pools[address(_token)];
     pool.alToken.burnEncrypted(_user, _amount);
@@ -54,68 +54,68 @@ contract MockLendingPool is LendingPool {
   function callAction(FHERC20 _token) external updatePoolWithInterestsAndTimestamp(_token) {}
 
 
-  // function calculateRoundDownLiquidityShareAmountExternal(ERC20 _token, uint256 _amount)
-  //   external
-  //   view
-  //   returns (uint256)
-  // {
-  //   return calculateRoundDownLiquidityShareAmount(_token, _amount);
-  // }
+  function calculateRoundDownLiquidityShareAmountExternal(FHERC20 _token, euint16 _amount)
+    external
+    view
+    returns (euint16)
+  {
+    return calculateRoundDownLiquidityShareAmount(_token, _amount);
+  }
 
-  // function calculateRoundUpLiquidityShareAmountExternal(ERC20 _token, uint256 _amount)
-  //   external
-  //   view
-  //   returns (uint256)
-  // {
-  //   return calculateRoundUpLiquidityShareAmount(_token, _amount);
-  // }
+  function calculateRoundUpLiquidityShareAmountExternal(FHERC20 _token, euint16 _amount)
+    external
+    view
+    returns (euint16)
+  {
+    return calculateRoundUpLiquidityShareAmount(_token, _amount);
+  }
 
-  // function calculateRoundUpBorrowShareAmountExternal(ERC20 _token, uint256 _amount)
-  //   external
-  //   view
-  //   returns (uint256)
-  // {
-  //   return calculateRoundUpBorrowShareAmount(_token, _amount);
-  // }
+  function calculateRoundUpBorrowShareAmountExternal(FHERC20 _token, euint16 _amount)
+    external
+    view
+    returns (euint16)
+  {
+    return calculateRoundUpBorrowShareAmount(_token, _amount);
+  }
 
-  // function calculateRoundDownLiquidityAmountExternal(ERC20 _token, uint256 _shareAmount)
-  //   external
-  //   view
-  //   returns (uint256)
-  // {
-  //   return calculateRoundDownLiquidityAmount(_token, _shareAmount);
-  // }
+  function calculateRoundDownLiquidityAmountExternal(FHERC20 _token, euint16 _shareAmount)
+    external
+    view
+    returns (euint16)
+  {
+    return calculateRoundDownLiquidityAmount(_token, _shareAmount);
+  }
 
-  // function calculateRoundUpBorrowAmountExternal(ERC20 _token, uint256 _shareAmount)
-  //   external
-  //   view
-  //   returns (uint256)
-  // {
-  //   return calculateRoundUpBorrowAmount(_token, _shareAmount);
-  // }
+  function calculateRoundUpBorrowAmountExternal(FHERC20 _token, euint16 _shareAmount)
+    external
+    view
+    returns (euint16)
+  {
+    return calculateRoundUpBorrowAmount(_token, _shareAmount);
+  }
 
-  // function calculateRoundDownBorrowShareAmountExternal(ERC20 _token, uint256 _amount)
-  //   external
-  //   view
-  //   returns (uint256)
-  // {
-  //   return calculateRoundDownBorrowShareAmount(_token, _amount);
-  // }
+  function calculateRoundDownBorrowShareAmountExternal(FHERC20 _token, euint16 _amount)
+    external
+    view
+    returns (euint16)
+  {
+    return calculateRoundDownBorrowShareAmount(_token, _amount);
+  }
 
-  // function calculateLinearInterestExternal(
-  //   uint256 _rate,
-  //   uint256 _fromTimestamp,
-  //   uint256 _toTimestamp
-  // ) external pure returns (uint256) {
-  //   return calculateLinearInterest(_rate, _fromTimestamp, _toTimestamp);
-  // }
+  function calculateLinearInterestExternal(
+    uint16 _rate,
+    uint256 _fromTimestamp,
+    uint256 _toTimestamp
+  ) external pure returns (uint16) {
+    return calculateLinearInterest(_rate, _fromTimestamp, _toTimestamp);
+  }
 
-  // function calculateCollateralAmountExternal(
-  //   ERC20 _token,
-  //   uint256 _liquidateAmount,
-  //   ERC20 _collateral
-  // ) external view returns (uint256) {
-  //   return calculateCollateralAmount(_token, _liquidateAmount, _collateral);
-  // }
+  function calculateCollateralAmountExternal(
+    FHERC20 _token,
+    euint16 _liquidateAmount,
+    FHERC20 _collateral
+  ) external view returns (euint16) {
+    return calculateCollateralAmount(_token, _liquidateAmount, _collateral);
+  }
 
 }
