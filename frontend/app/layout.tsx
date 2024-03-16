@@ -9,11 +9,12 @@ import {
 } from "../lib/dynamic";
 import Navbar from "./navbar";
 import { cn } from "../lib/utils";
+import { TooltipProvider } from "../components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Lending App",
+  title: "lendy.wtf",
   description: "Privacy-first app for lending and borrowing",
 };
 
@@ -24,20 +25,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <DynamicContextProvider
-        settings={{
-          environmentId: "2762a57b-faa4-41ce-9f16-abff9300e2c9",
-          walletConnectors: [EthereumWalletConnectors],
-          walletConnectorExtensions: [EthersExtension],
-        }}
-      >
-        <DynamicWagmiConnector>
-          <body className={cn(inter.className, "flex flex-col")}>
-            <Navbar />
-            {children}
-          </body>
-        </DynamicWagmiConnector>
-      </DynamicContextProvider>
+      <body className={cn(inter.className, "flex flex-col items-center")}>
+        <DynamicContextProvider
+          settings={{
+            environmentId: "2762a57b-faa4-41ce-9f16-abff9300e2c9",
+            walletConnectors: [EthereumWalletConnectors],
+            walletConnectorExtensions: [EthersExtension],
+          }}
+        >
+          <DynamicWagmiConnector>
+            <TooltipProvider>
+              <div className="max-w-[1240px] w-full flex flex-col">
+                <Navbar />
+                {children}
+              </div>
+            </TooltipProvider>
+          </DynamicWagmiConnector>
+        </DynamicContextProvider>
+      </body>
     </html>
   );
 }
