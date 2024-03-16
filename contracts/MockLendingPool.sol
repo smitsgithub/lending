@@ -1,8 +1,8 @@
 pragma solidity ^0.8.19;
 
 import "./FHERC20.sol";
-import "../AlTokenDeployer.sol";
-import "../LendingPool.sol";
+import "./AlTokenDeployer.sol";
+import "./LendingPool.sol";
 import { FHE, euint16, inEuint16 } from "@fhenixprotocol/contracts/FHE.sol";
 
 
