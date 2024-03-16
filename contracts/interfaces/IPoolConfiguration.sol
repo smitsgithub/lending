@@ -1,4 +1,9 @@
+// SPDX-License-Identifier: Apache-2.0
+
 pragma solidity ^0.8.19;
+
+
+import { FHE, euint16, inEuint16 } from "@fhenixprotocol/contracts/FHE.sol";
 
 /**
  * @title Pool configuration interface
@@ -37,10 +42,10 @@ interface IPoolConfiguration {
    * @param _totalLiquidity the total liquidity of the ERC20 token of the pool
    * @return borrowInterestRate an annual borrow interest rate
    */
-  function calculateInterestRate(uint256 _totalBorrows, uint256 _totalLiquidity)
+  function calculateInterestRate(euint16 _totalBorrows, euint16 _totalLiquidity)
     external
     view
-    returns (uint256 borrowInterestRate);
+    returns (uint16 borrowInterestRate);
 
   /**
    * @notice calculate the utilization rate
@@ -48,8 +53,8 @@ interface IPoolConfiguration {
    * @param _totalLiquidity the total liquidity of the ERC20 token of the pool
    * @return utilizationRate the utilization rate of the ERC20 pool
    */
-  function getUtilizationRate(uint256 _totalBorrows, uint256 _totalLiquidity)
+  function getUtilizationRate(euint16 _totalBorrows, euint16 _totalLiquidity)
     external
     view
-    returns (uint256 utilizationRate);
+    returns (uint16 utilizationRate);
 }

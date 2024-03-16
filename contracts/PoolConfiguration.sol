@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -51,7 +53,7 @@ contract PoolConfiguration is IPoolConfiguration, Ownable {
     uint16 _rateSlope2,
     uint16 _collateralPercent,
     uint16 _liquidationBonusPercent
-  ) public {
+  ) Ownable(msg.sender) public {
     baseBorrowRate = _baseBorrowRate;
     rateSlope1 = _rateSlope1;
     rateSlope2 = _rateSlope2;
@@ -108,7 +110,7 @@ contract PoolConfiguration is IPoolConfiguration, Ownable {
    */
   function calculateInterestRate(euint16 _totalBorrows, euint16 _totalLiquidity)
     external
-    override(IPoolConfiguration)
+    override
     view
     returns (uint16)
   {
@@ -134,14 +136,13 @@ contract PoolConfiguration is IPoolConfiguration, Ownable {
   }
 
   /**
-   * @dev calculate the utilization rate
+   * @dev calculate the utilization rateOwnable(msg.sender)
    * @param _totalBorrows the total borrows of the ERC20 token pool
    * @param _totalLiquidity the total liquidity of the ERC20 token of the pool
    * @return utilizationRate the utilization rate of the ERC20 pool
    */
   function getUtilizationRate(euint16 _totalBorrows, euint16 _totalLiquidity)
     public
-    override
     view
     returns (uint16 utilizationRate)
   {

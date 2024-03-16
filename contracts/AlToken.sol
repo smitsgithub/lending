@@ -18,6 +18,7 @@ import { FHE, euint16, inEuint16 } from "@fhenixprotocol/contracts/FHE.sol";
  **/
 
 contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
+
   /**
    * @dev the lending pool of the AlToken
    */
@@ -50,7 +51,7 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
     string memory _symbol,
     ILendingPool _lendingPoolAddress,
     FHERC20 _underlyingAsset
-  ) public FHERC20(_name, _symbol) {
+  ) FHERC20(_name, _symbol)  Ownable(msg.sender){
     lendingPool = _lendingPoolAddress;
     underlyingAsset = _underlyingAsset;
   }
@@ -81,7 +82,7 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
    * @dev receive Alpha token from the token distributor
    * @param _amount the amount of Alpha to receive
    */
-  function receiveAlpha(euint16 _amount) external override {
+  function receiveAlpha(euint16 _amount) external {
     require(msg.sender == address(lendingPool), "Only lending pool can call receive Alpha");
     lendingPool.distributor().alphaToken().transferFromEncrypted(msg.sender, address(this), _amount);
     // Don't change alphaMultiplier if total supply equal zero.
@@ -125,7 +126,6 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
     euint16 pending = calculateAlphaReward(_account);
     euint16 alphaBalance = lendingPool.distributor().alphaToken().balanceOfSealed(address(this));
     pending = FHE.select(FHE.lt(pending, alphaBalance), pending, alphaBalance);
-    pending = pending < alphaBalance ? pending : alphaBalance;
     if (address(lendingPool.vestingAlpha()) == address(0)) {
       lendingPool.distributor().alphaToken().transferEncrypted(_account, pending);
     } else {
@@ -149,7 +149,7 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
     address _from,
     address _to,
     euint16 _amount
-  ) internal override {
+  ) internal  {
     claimCurrentAlphaReward(_from);
     claimCurrentAlphaReward(_to);
     super.transferFromEncrypted(_from, _to, _amount);

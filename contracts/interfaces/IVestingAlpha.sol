@@ -18,5 +18,5 @@ interface IVestingAlpha {
    * @param _user the user account address
    * @param _amount the amount of Alpha token to accumulate
    */
-  function accumulateAlphaToUser(address _user, inEuint16 calldata _amount) external;
+  function accumulateAlphaToUser(address _user, euint16 _amount) external;
 }

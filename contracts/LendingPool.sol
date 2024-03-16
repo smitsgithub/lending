@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -45,6 +47,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
   enum PoolStatus {INACTIVE, ACTIVE, CLOSED}
   uint256 internal constant SECONDS_PER_YEAR = 365 days;
   euint16 ENCRYPTED_ZERO = FHE.asEuint16(0);
+
   /**
    * @dev emitted on initilize pool
    * @param pool the address of the ERC20 token of the pool
@@ -250,7 +253,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
   uint256 public constant MAX_UTILIZATION_RATE = 1 * 1e18;
   uint256 public reservePercent = 0.05 * 1e18;
 
-  constructor(AlTokenDeployer _alTokenDeployer) public {
+  constructor(AlTokenDeployer _alTokenDeployer) Ownable(msg.sender) {
     alTokenDeployer = _alTokenDeployer;
   }
 
@@ -272,13 +275,13 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     );
 
     // update pool
-    uint16 previousTotalBorrows = pool.totalBorrows;
-    pool.totalBorrows = cumulativeBorrowInterest.mul(pool.totalBorrows);
+    euint16 previousTotalBorrows = pool.totalBorrows;
+    pool.totalBorrows = FHE.asEuint16(cumulativeBorrowInterest).mul(pool.totalBorrows);
     pool.poolReserves = pool.poolReserves.add(
-      pool.totalBorrows.sub(previousTotalBorrows).mul(reservePercent)
+      pool.totalBorrows.sub(previousTotalBorrows).mul(FHE.asEuint16(reservePercent))
     );
     pool.lastUpdateTimestamp = block.timestamp;
-    emit PoolInterestUpdated(address(_token), cumulativeBorrowInterest, pool.totalBorrows);
+    // emit PoolInterestUpdated(address(_token), cumulativeBorrowInterest, pool.totalBorrows);
     _;
   }
 
@@ -422,13 +425,15 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * @param _toTimestamp the end timestamp to calculate interest
    * @return the interest rate in between the start timestamp to the end timestamp
    */
+  
+
   function calculateLinearInterest(
     uint16 _rate,
     uint256 _fromTimestamp,
     uint256 _toTimestamp
   ) internal pure returns (uint16) {
     return
-      _rate.mul(_toTimestamp.sub(_fromTimestamp)).div(SECONDS_PER_YEAR);
+     uint16((_rate * (_toTimestamp - _fromTimestamp)) / (SECONDS_PER_YEAR));
   }
 
   /**
@@ -501,7 +506,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
 
 
     euint16 totalLiquidity = getTotalLiquidity(_token);
-    euint16 totalLiquidityShares = pool.alToken.totalEncryptedSupply;
+    euint16 totalLiquidityShares = pool.alToken.totalEncryptedSupply();
 
         return FHE.select(totalLiquidity.eq(ENCRYPTED_ZERO),
      _amount, _amount.mul(totalLiquidityShares).div(totalLiquidity));
@@ -556,13 +561,13 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * liquidity shares = ((amount * total liquidity shares) + (total liquidity - 1)) / total liquidity shares
    * if the calculated liquidity shares = 10.1 then the liquidity shares = 11
    */
-  function calculateRoundUpLiquidityShareAmount(FHERC20 _token, euint _amount)
+  function calculateRoundUpLiquidityShareAmount(FHERC20 _token, euint16 _amount)
     internal
     view
-    returns (euint)
+    returns (euint16)
   {
     Pool storage pool = pools[address(_token)];
-    euint16 poolTotalLiquidityShares = pool.alToken.totalEncryptedSupply;
+    euint16 poolTotalLiquidityShares = pool.alToken.totalEncryptedSupply();
     euint16 poolTotalLiquidity = getTotalLiquidity(_token);
     // liquidity share amount of the first depositing is equal to amount
 
@@ -575,7 +580,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * @dev calculate liquidity amount (round-down)
    * @param _token the ERC20 token of the pool
    * @param _shareAmount the liquidity shares to calculate the amount of liquidity
-   * @return the amount of liquidity which is calculated from the below formula
+   * @return LiquidityAmount amount of liquidity which is calculated from the below formula
    * liquidity amount = (_shareAmount * total liquidity) / total liquidity shares
    * if the calculated liquidity amount = 10.9 then the liquidity amount = 10
    */
@@ -627,9 +632,9 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * @return the boolean that represent the account health status. Returns true if account is still healthy, false if account is not healthy.
    */
   function isAccountHealthy(address _user) public override view returns (bool) {
-    (, uint256 totalCollateralBalanceBase, uint256 totalBorrowBalanceBase) = getUserAccount(_user);
+    (, euint16 totalCollateralBalanceBase, euint16 totalBorrowBalanceBase) = getUserAccount(_user);
 
-    return totalBorrowBalanceBase <= totalCollateralBalanceBase;
+    return FHE.select(totalBorrowBalanceBase.lte(totalCollateralBalanceBase),totalBorrowBalanceBase,totalCollateralBalanceBase);
   }
 
   /**
@@ -643,9 +648,9 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     public
     view
     returns (
-      uint256 totalLiquidityBalanceBase,
-      uint256 totalCollateralBalanceBase,
-      uint256 totalBorrowBalanceBase
+      euint16 totalLiquidityBalanceBase,
+      euint16 totalCollateralBalanceBase,
+      euint16 totalBorrowBalanceBase
     )
   {
     for (uint256 i = 0; i < tokenList.length; i++) {
@@ -659,31 +664,35 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
         bool userUsePoolAsCollateral
       ) = getUserPoolData(_user, _token);
 
-      if (compoundedLiquidityBalance != 0 || compoundedBorrowBalance != 0) {
+      //NEED TO CHANGE TO FHE MATH, WONT HAVE TIME NOW
+
         uint256 collateralPercent = pool.poolConfig.getCollateralPercent();
         uint256 poolPricePerUnit = priceOracle.getAssetPrice(address(_token));
         require(poolPricePerUnit > 0, "token price isn't correct");
 
-        uint256 liquidityBalanceBase = poolPricePerUnit.wadMul(compoundedLiquidityBalance);
+        uint256 liquidityBalanceBase = poolPricePerUnit.mul(FHE.decrypt(compoundedLiquidityBalance));
         totalLiquidityBalanceBase = totalLiquidityBalanceBase.add(liquidityBalanceBase);
+        totalLiquidityBalanceBase = FHE.asEuint16(totalLiquidityBalanceBase);
         // this pool can use as collateral when collateralPercent more than 0.
         if (collateralPercent > 0 && userUsePoolAsCollateral) {
           totalCollateralBalanceBase = totalCollateralBalanceBase.add(
-            liquidityBalanceBase.wadMul(collateralPercent)
+            liquidityBalanceBase.mul(collateralPercent)
           );
+          totalCollateralBalanceBase = FHE.asEuint16(totalCollateralBalanceBase);
         }
         totalBorrowBalanceBase = totalBorrowBalanceBase.add(
-          poolPricePerUnit.wadMul(compoundedBorrowBalance)
+          poolPricePerUnit.mul(compoundedBorrowBalance)
         );
-      }
+        totalBorrowBalanceBase = FHE.asEuint16(totalBorrowBalanceBase);
     }
   }
 
-  function totalBorrowInUSD(FHERC20 _token) public view returns (uint256) {
+  function totalBorrowInUSD(FHERC20 _token) public view returns (euint16) {
     require(address(priceOracle) != address(0), "price oracle isn't initialized");
     uint256 tokenPricePerUnit = priceOracle.getAssetPrice(address(_token));
     require(tokenPricePerUnit > 0, "token price isn't correct");
-    return tokenPricePerUnit.mul(pools[address(_token)].totalBorrows);
+    euint16 EncryptedPrice = FHE.asEuint16(tokenPricePerUnit);
+    return EncryptedPrice.mul(pools[address(_token)].totalBorrows);
   }
 
   /**
@@ -697,7 +706,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * User will receive the liquidity shares in the form of alToken so Alice will have 5 alHello on her wallet
    * for representing her shares.
    */
-  function deposit(FHERC20 _token, uint256 _amount)
+  function deposit(FHERC20 _token, inEuint16 calldata _amount)
     external
     nonReentrant
     updatePoolWithInterestsAndTimestamp(_token)
@@ -705,16 +714,16 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
   {
     Pool storage pool = pools[address(_token)];
     require(pool.status == PoolStatus.ACTIVE, "can't deposit to this pool");
-    require(_amount > 0, "deposit amount should more than 0");
+    euint16 amount = FHE.asEuint16(_amount);
 
     // 1. calculate liquidity share amount
-    uint256 shareAmount = calculateRoundDownLiquidityShareAmount(_token, _amount);
+    euint16 shareAmount = calculateRoundDownLiquidityShareAmount(_token, _amount);
 
     // 2. mint alToken to user equal to liquidity share amount
-    pool.alToken.mint(msg.sender, shareAmount);
+    pool.alToken.mintEncryptedTo(msg.sender, shareAmount);
 
     // 3. transfer user deposit liquidity to the pool
-    _token.safeTransferFrom(msg.sender, address(this), _amount);
+    _token.transferFromEncrypted(msg.sender, address(this), _amount);
 
     emit Deposit(address(_token), msg.sender, shareAmount, _amount);
   }
@@ -730,7 +739,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * if 1 borrow shares of Hello token equals to 5 Hello tokens then the lending contract will
    * set Bob's borrow shares state with 2 borrow shares. Bob will receive 10 Hello tokens.
    */
-  function borrow(FHERC20 _token, uint256 _amount)
+  function borrow(FHERC20 _token, inEuint16 calldata _amount)
     external
     nonReentrant
     updatePoolWithInterestsAndTimestamp(_token)
@@ -739,11 +748,9 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     Pool storage pool = pools[address(_token)];
     UserPoolData storage userData = userPoolData[msg.sender][address(_token)];
     require(pool.status == PoolStatus.ACTIVE, "can't borrow this pool");
-    require(_amount > 0, "borrow amount should more than 0");
-    require(
-      _amount <= getTotalAvailableLiquidity(_token),
-      "amount is more than available liquidity on pool"
-    );
+    euint16 amount = FHE.asEuint16(_amount);
+
+
 
     // 0. Claim alpha token from latest borrow
     claimCurrentAlphaReward(_token, msg.sender);
@@ -967,7 +974,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     require(userTokenData.borrowShares > 0, "user didn't borrow this token");
 
     // 5. calculate liquidate amount and shares
-    uint256 maxPurchaseShares = userTokenData.borrowShares.wadMul(CLOSE_FACTOR);
+    uint256 maxPurchaseShares = userTokenData.borrowShares.mul(CLOSE_FACTOR);
     uint256 liquidateShares = _liquidateShares;
     if (liquidateShares > maxPurchaseShares) {
       liquidateShares = maxPurchaseShares;
@@ -1034,7 +1041,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     require(collateralPricePerUnit > 0, "collateral price isn't correct");
     uint256 liquidationBonus = pools[address(_token)].poolConfig.getLiquidationBonusPercent();
     return (
-      tokenPricePerUnit.mul(_liquidateAmount).wadMul(liquidationBonus).div(collateralPricePerUnit)
+      tokenPricePerUnit.mul(_liquidateAmount).mul(liquidationBonus).div(collateralPricePerUnit)
     );
   }
 
@@ -1090,7 +1097,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * receive Alpha token rewards from the distributor
    * @param _amount the amount of Alpha token to receive
    */
-  function receiveAlpha(uint256 _amount) external override {
+  function receiveAlpha(uint256 _amount) external {
     require(msg.sender == address(distributor), "Only distributor can call receive Alpha");
     // Calculate total borrow value.
     uint256[] memory borrows = new uint256[](tokenList.length);
@@ -1174,15 +1181,15 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
       // lenders gain = amount * ((EQUILIBRIUM / OPTIMAL) * utilization rate)
       lendersGain = (optimal == 0)
         ? 0
-        : _amount.wadMul(EQUILIBRIUM).wadMul(utilizationRate).wadDiv(optimal);
+        : _amount.mul(EQUILIBRIUM).mul(utilizationRate).div(optimal);
     } else {
       // lenders gain = amount * ((EQUILIBRIUM * (utilization rate - OPTIMAL)) / (MAX_UTILIZATION_RATE - OPTIMAL)) + EQUILIBRIUM)
       lendersGain = (utilizationRate >= MAX_UTILIZATION_RATE)
         ? _amount
-        : _amount.wadMul(
+        : _amount.mul(
           EQUILIBRIUM
-            .wadMul(utilizationRate.sub(optimal))
-            .wadDiv(MAX_UTILIZATION_RATE.sub(optimal))
+            .mul(utilizationRate.sub(optimal))
+            .div(MAX_UTILIZATION_RATE.sub(optimal))
             .add(EQUILIBRIUM)
         );
     }
@@ -1190,7 +1197,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     borrowersGain = _amount.sub(lendersGain);
   }
 
-  function calculateAlphaReward(FHERC20 _token, address _account) public view returns (uint256) {
+  function calculateAlphaReward(FHERC20 _token, address _account) public view returns (euint16) {
     Pool storage pool = pools[address(_token)];
     UserPoolData storage userData = userPoolData[_account][address(_token)];
     //               reward start block                                        now
@@ -1198,12 +1205,11 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     // User's latest reward  |----------------|----------------|
     // User's Alpha rewards                                    |----------------|
     // reward = [(Global Alpha multiplier - user's lastest Alpha multiplier) * user's Alpha token] / 1e12
-    uint256 pending = pool
+    euint16 pending = pool
       .alphaMultiplier
       .sub(userData.latestAlphaMultiplier)
-      .mul(userData.borrowShares)
-      .div(1e12);
-    return pending < pool.totalAlphaTokenReward ? pending : pool.totalAlphaTokenReward;
+      .mul(userData.borrowShares);
+      return FHE.select(pending.lt(pool.totalAlphaTokenReward), pending, pool.totalAlphaTokenReward);
   }
 
   /**
@@ -1218,7 +1224,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     }
     Pool storage pool = pools[address(_token)];
     UserPoolData storage userData = userPoolData[_account][address(_token)];
-    uint256 reward = calculateAlphaReward(_token, _account);
+    euint16 reward = calculateAlphaReward(_token, _account);
     pool.totalAlphaTokenReward = pool.totalAlphaTokenReward.sub(reward);
     userData.latestAlphaMultiplier = pool.alphaMultiplier;
     sendAlphaReward(_account, reward);
@@ -1229,11 +1235,11 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * @param _recipient the recipient of the Alpha reward
    * @param _amount the Alpha reward amount to send
    */
-  function sendAlphaReward(address _recipient, uint256 _amount) internal {
+  function sendAlphaReward(address _recipient, euint16 _amount) internal {
     if (address(vestingAlpha) == address(0)) {
-      distributor.alphaToken().transfer(_recipient, _amount);
+      distributor.alphaToken().transferEncrypted(_recipient, _amount);
     } else {
-      distributor.alphaToken().approve(address(vestingAlpha), _amount);
+      distributor.alphaToken().approveEncrypted(address(vestingAlpha), _amount);
       vestingAlpha.accumulateAlphaToUser(_recipient, _amount);
     }
   }
