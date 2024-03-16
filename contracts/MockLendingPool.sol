@@ -14,12 +14,14 @@ contract MockLendingPool is LendingPool {
 
   function setPool(
     FHERC20 _token,
-    euint16 _totalBorrows,
-    euint16 _totalBorrowShares
+    inEuint16 calldata _totalBorrows,
+    inEuint16 calldata _totalBorrowShares
   ) external {
+    euint16 totalBorrows = FHE.asEuint16(_totalBorrows);
+    euint16 totalBorrowShares = FHE.asEuint16(_totalBorrowShares);
     Pool storage pool = pools[address(_token)];
-    pool.totalBorrows = _totalBorrows;
-    pool.totalBorrowShares = _totalBorrowShares;
+    pool.totalBorrows = totalBorrows;
+    pool.totalBorrowShares = totalBorrowShares;
     pool.lastUpdateTimestamp = block.timestamp;
   }
 

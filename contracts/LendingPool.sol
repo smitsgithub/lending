@@ -15,6 +15,8 @@ import "./AlToken.sol";
 import "./AlTokenDeployer.sol";
 
 import { FHE, euint16, inEuint16, ebool  } from "@fhenixprotocol/contracts/FHE.sol";
+import { Permissioned, Permission } from "@fhenixprotocol/contracts/access/Permissioned.sol";
+
 
 
 /**
@@ -24,7 +26,7 @@ import { FHE, euint16, inEuint16, ebool  } from "@fhenixprotocol/contracts/FHE.s
  * @author Alpha
  **/
 
-contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
+contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard, Permissioned{
 
   /*
    * Lending pool smart contracts
@@ -405,7 +407,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * uses the liquidity in this ERC20 token pool as collateral or not
    */
   function getUserPoolData(address _user, FHERC20 _token)
-    public
+    internal
     view
     returns (
       euint16 compoundedLiquidityBalance,
@@ -415,6 +417,20 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
   {
     compoundedLiquidityBalance = getUserCompoundedLiquidityBalance(_user, _token);
     compoundedBorrowBalance = getUserCompoundedBorrowBalance(_user, _token);
+    userUsePoolAsCollateral = !userPoolData[_user][address(_token)].disableUseAsCollateral;
+  }
+
+    function getUserPoolDataSealOutput(address _user, FHERC20 _token, Permission memory auth) onlyPermitted(auth, _user)
+    internal
+    view
+    returns (
+      bytes memory compoundedLiquidityBalance,
+      bytes memory compoundedBorrowBalance,
+      bool userUsePoolAsCollateral
+    )
+  {
+    compoundedLiquidityBalance = getUserCompoundedLiquidityBalance(_user, _token).seal(auth.publicKey);
+    compoundedBorrowBalance = getUserCompoundedBorrowBalance(_user, _token).seal(auth.publicKey);
     userUsePoolAsCollateral = !userPoolData[_user][address(_token)].disableUseAsCollateral;
   }
 
