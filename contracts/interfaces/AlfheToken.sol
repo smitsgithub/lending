@@ -12,7 +12,7 @@ import { FHE, euint16, inEuint16 } from "@fhenixprotocol/contracts/FHE.sol";
  * @author Alpha
  */
 
-contract AlphaToken is FHERC20("AlphaToken", "ALPHA"), Ownable {
+contract AlfheToken is FHERC20("AlfheToken", "ALFHE"), Ownable {
   function mintEncrypted(address _to, inEuint16 _value) public onlyOwner {
     mintEncryptedTo(_to, FHE.asEuint16(_value));
   }

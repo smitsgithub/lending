@@ -1,6 +1,6 @@
 pragma solidity ^0.8.19;
 
-import {AlphaToken} from "../distribution/AlphaToken.sol";
+import {AlfheToken} from "./AlfheToken.sol";
 
 /**
  * @title Alpha distributor interface
@@ -11,9 +11,9 @@ import {AlphaToken} from "../distribution/AlphaToken.sol";
 interface IAlphaDistributor {
   /**
    * @notice get the Alpha token of the distributor
-   * @return AlphaToken - the Alpha token
+   * @return AlfheToken - the Alpha token
    */
-  function alphaToken() external view returns (AlphaToken);
+  function alphaToken() external view returns (AlfheToken);
 
   /**
    * @notice distribute the Alpha token to the receivers

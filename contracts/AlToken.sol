@@ -31,7 +31,7 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
   /**
    * @dev the alpha reward multiplier to calculate Alpha token rewards for the AlToken holder.
    */
-  uint256 public alphaMultiplier;
+  euint16 private alphaMultiplier;
 
   /**
    * @dev the latest reward of user after latest user activity.
@@ -43,7 +43,7 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
    *
    * user address => latest rewards
    */
-  mapping(address => uint256) latestAlphaMultiplier;
+  mapping(address => euint16) private latestAlphaMultiplier;
 
   constructor(
     string memory _name,
@@ -61,9 +61,9 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
    * @param _amount the amount of alToken to mint
    * Only lending pool can mint alToken
    */
-  function mint(address _account, uint256 _amount) external onlyOwner {
+  function mint(address _account, euint16 _amount) external onlyOwner {
     claimCurrentAlphaReward(_account);
-    _mint(_account, _amount);
+    mintEncryptedTo(_account, _amount);
   }
 
   /**
@@ -72,23 +72,22 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
    * @param _amount the amount of alToken to burn
    * Only lending pool can burn alToken
    */
-  function burn(address _account, uint256 _amount) external onlyOwner {
+  function burn(address _account, euint16 _amount) external onlyOwner {
     claimCurrentAlphaReward(_account);
-    _burn(_account, _amount);
+    burnEncryptedTo(_account, _amount);
   }
 
   /**
    * @dev receive Alpha token from the token distributor
    * @param _amount the amount of Alpha to receive
    */
-  function receiveAlpha(uint256 _amount) external override {
+  function receiveAlpha(euint16 _amount) external override {
     require(msg.sender == address(lendingPool), "Only lending pool can call receive Alpha");
-    lendingPool.distributor().alphaToken().transferFrom(msg.sender, address(this), _amount);
+    lendingPool.distributor().alphaToken().transferFromEncrypted(msg.sender, address(this), _amount);
     // Don't change alphaMultiplier if total supply equal zero.
-    if (totalSupply() == 0) {
-      return;
-    }
-    alphaMultiplier = alphaMultiplier.add(_amount.mul(1e12).div(totalSupply()));
+
+    alphaMultiplier = FHE.select(totalEncryptedSupply.eq(FHE.asEuint16(0)),
+    alphaMultiplier.add(FHE.asEuint16(0)),alphaMultiplier.add(_amount.div(totalEncryptedSupply)));
   }
 
   /**
@@ -96,14 +95,14 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
    * @param _account the user account address
    * @return the amount of Alpha rewards
    */
-  function calculateAlphaReward(address _account) public view returns (uint256) {
+  function calculateAlphaReward(address _account) public view returns (euint16) {
     //               reward start block                                        now
     // Global                |----------------|----------------|----------------|
     // User's latest reward  |----------------|----------------|
     // User's Alpha rewards                                    |----------------|
     // reward = [(Global Alpha multiplier - user's lastest Alpha multiplier) * user's Alpha token] / 1e12
     return
-      (alphaMultiplier.sub(latestAlphaMultiplier[_account]).mul(balanceOf(_account))).div(1e12);
+      alphaMultiplier.sub(latestAlphaMultiplier[_account]).mul(balanceOfSealed(_account));
   }
 
   /**
@@ -123,14 +122,15 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
     if (address(lendingPool.distributor()) == address(0)) {
       return;
     }
-    uint256 pending = calculateAlphaReward(_account);
-    uint256 alphaBalance = lendingPool.distributor().alphaToken().balanceOf(address(this));
+    euint16 pending = calculateAlphaReward(_account);
+    euint16 alphaBalance = lendingPool.distributor().alphaToken().balanceOfSealed(address(this));
+    pending = FHE.select(FHE.lt(pending, alphaBalance), pending, alphaBalance);
     pending = pending < alphaBalance ? pending : alphaBalance;
     if (address(lendingPool.vestingAlpha()) == address(0)) {
-      lendingPool.distributor().alphaToken().transfer(_account, pending);
+      lendingPool.distributor().alphaToken().transferEncrypted(_account, pending);
     } else {
       IVestingAlpha vestingAlpha = lendingPool.vestingAlpha();
-      lendingPool.distributor().alphaToken().approve(address(vestingAlpha), pending);
+      lendingPool.distributor().alphaToken().approveEncrypted(address(vestingAlpha), pending);
       vestingAlpha.accumulateAlphaToUser(_account, pending);
     }
     latestAlphaMultiplier[_account] = alphaMultiplier;
@@ -148,11 +148,11 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
   function _transfer(
     address _from,
     address _to,
-    uint256 _amount
+    euint16 _amount
   ) internal override {
     claimCurrentAlphaReward(_from);
     claimCurrentAlphaReward(_to);
-    super._transfer(_from, _to, _amount);
+    super.transferFromEncrypted(_from, _to, _amount);
     require(lendingPool.isAccountHealthy(_from), "Transfer tokens is not allowed");
   }
 }

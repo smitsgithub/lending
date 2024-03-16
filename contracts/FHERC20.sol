@@ -38,6 +38,10 @@ contract FHERC20 is IFHERC20, ERC20, Permissioned {
         _approve(msg.sender, spender, FHE.asEuint16(value));
         return true;
     }
+    function approveEncrypted(address spender, euint16 value) public virtual returns (bool) {
+        _approve(msg.sender, spender, value);
+        return true;
+    }
 
     function _approve(address owner, address spender, euint16 value) internal {
         if (owner == address(0)) {
@@ -150,6 +154,12 @@ contract FHERC20 is IFHERC20, ERC20, Permissioned {
     }
 
 // TEST PURPORSES 
+     function balanceOfSealed(
+        address account
+    ) virtual public view returns (euint16) {
+        return _encBalances[msg.sender];
+    }
+
     function balanceOfEncrypted(address account) virtual external view returns (uint16) {
         return FHE.decrypt(_encBalances[account]);
     }
