@@ -1,6 +1,6 @@
 "use client";
 import { DynamicWidget, useDynamicContext } from "@dynamic-labs/sdk-react-core";
-import { Logo } from "./logo/logo";
+import { Logo } from "./logo";
 import { Button } from "./button";
 import { useEffect, useState } from "react";
 

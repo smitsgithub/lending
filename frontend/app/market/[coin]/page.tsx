@@ -5,6 +5,14 @@ import { useCallback, useEffect, useState } from "react";
 import { ActiveMarkets } from "../../../components/ui/activeMarkets";
 import { Action, Coin, RestorativeAction } from "../../../commonTypes";
 import { CardDialog } from "../../../components/ui/cardDialog";
+import { Icon } from "../../../components/ui/icons/index";
+import { FunkyFontWrapper } from "../../../components/ui/funkyFontWrapper";
+
+const coinData: Record<Coin, { name: string }> = {
+  FTX: { name: "FTX" },
+  ETH: { name: "Etherium" },
+  AVAX: { name: "Avalanche" },
+};
 
 export default function MarketPage() {
   const pathname = usePathname();
@@ -12,7 +20,7 @@ export default function MarketPage() {
   const coin = pathname.substring(lastSegmentStartIndex + 1);
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--gradient-step", "380px");
+    document.documentElement.style.setProperty("--gradient-step", "260px");
   }, []);
 
   const [dialogProps, setDialogProps] = useState<{
@@ -32,14 +40,21 @@ export default function MarketPage() {
     }
   }, []);
 
-  console.log("render");
+  const IconComponent = Icon[coin as Coin] ?? null;
 
   return (
-    <main className="flex flex-col flex-grow items-center justify-between pt-6 md:pt-[100px] px-5 ">
+    <main className="flex flex-col flex-grow items-center justify-between pt-6 md:pt-[100px] px-5 text-black ">
       <CardDialog
         dialogProps={dialogProps}
         onOpenChange={handleDialogOpenChange}
       />
+      <section className="flex flex-row w-full gap-5">
+        <IconComponent width={95} height={95} />
+        <FunkyFontWrapper className="text-3xl pt-2">
+          {coinData[coin as Coin].name}
+        </FunkyFontWrapper>
+        <div className="flex flex-grow justify-end">{/* // {// FIXME:} */}</div>
+      </section>
       <section className="flex flex-col mt-9 mb-14 w-full gap-14">
         <ActiveMarkets
           onAction={handleAction}
