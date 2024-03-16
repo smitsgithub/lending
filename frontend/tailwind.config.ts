@@ -1,4 +1,4 @@
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
 
 const config = {
   darkMode: ["class"],
@@ -14,7 +14,7 @@ const config = {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        sm: "680px",
       },
     },
     extend: {
@@ -75,9 +75,14 @@ const config = {
       boxShadow: {
         boxy: "8px 8px 0px 0px #0000001A",
       },
+
+      backgroundImage: {
+        "main-gradient":
+          "linear-gradient(to bottom, #F6F5F4 0%, #F6F5F4 var(--gradient-step), #FAFAFA var(--gradient-step), #FAFAFA 100%)",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
 
-export default config
+export default config;

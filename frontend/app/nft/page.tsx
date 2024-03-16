@@ -1,43 +1,23 @@
 "use client";
-import { SupplyBorrowCard } from "../components/ui/supplyBorrowCard";
-import { AccountInfo } from "../components/ui/accountInfo";
-import { ActiveMarkets } from "../components/ui/activeMarkets";
-import { YourPositions } from "../components/ui/yourPositions";
-import { useCallback, useEffect, useState } from "react";
-import { CardDialog } from "../components/ui/cardDialog";
-import { Action, Coin } from "../commonTypes";
+import { SupplyBorrowCard } from "../../components/ui/supplyBorrowCard";
+import { AccountInfo } from "../../components/ui/accountInfo";
+import { ActiveMarkets } from "../../components/ui/activeMarkets";
+import { YourPositions } from "../../components/ui/yourPositions";
+import { useEffect } from "react";
 
-export default function Home() {
+export default function NFT() {
   useEffect(() => {
-    document.documentElement.style.setProperty("--gradient-step", "580px");
+    document.documentElement.style.setProperty("--gradient-step", "380px");
   }, []);
-  const [dialogProps, setDialogProps] = useState<{
-    action: Action;
-    coin: Coin;
-  } | null>(null);
-
-  const handleAction = useCallback((action: Action, coin: Coin) => {
-    setDialogProps({ action, coin });
-  }, []);
-  const handleDialogOpenChange = useCallback((opened: boolean) => {
-    if (!opened) {
-      setDialogProps(null);
-    }
-  }, []);
-
   return (
     <main className="flex flex-col flex-grow items-center justify-between pt-6 md:pt-[100px] px-5 ">
-      <CardDialog
-        dialogProps={dialogProps}
-        onOpenChange={handleDialogOpenChange}
-      />
       <section className="max-w-[580px] w-full flex flex-col gap-6">
         <SupplyBorrowCard />
         <AccountInfo />
       </section>
       <section className="flex flex-col mt-9 mb-14 w-full gap-14">
         <ActiveMarkets
-          onAction={handleAction}
+          onAction={() => {}} // FIXME:
           markets={[
             {
               coin: "ETH",

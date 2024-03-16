@@ -1,10 +1,13 @@
 import Image from "next/image";
 import logo from "./logo.png";
 import styles from "./logo.module.css";
-import { cn } from "../../../lib/utils";
+import { scrollToTop } from "../../../helpers";
 
 export const Logo = () => (
-  <div className="h-7 flex items-end self-start">
+  <div
+    onClick={scrollToTop}
+    className="h-7 flex items-end self-start cursor-pointer"
+  >
     <Image
       src={logo}
       alt="Logo"

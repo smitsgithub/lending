@@ -4,7 +4,7 @@ import { CoinSelect } from "./coinSelect";
 import { FunkyFontWrapper } from "./funkyFontWrapper";
 import { Input } from "./input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
-import { Coin } from "../../commonTypes";
+import { Action, Coin } from "../../commonTypes";
 import { cn } from "../../lib/utils";
 
 export const CardContent = ({
@@ -14,6 +14,7 @@ export const CardContent = ({
   onCoinChange,
   onSubmit,
   infoRows,
+  action,
 }: {
   amount: string;
   onAmountChange: (val: string) => void;
@@ -21,6 +22,7 @@ export const CardContent = ({
   onCoinChange: (val: Coin) => void;
   onSubmit: () => void;
   infoRows: { title: string; value: string }[];
+  action: Action;
 }) => {
   const amountChangeHandler: ChangeEventHandler<HTMLInputElement> = ({
     target: { value },
@@ -32,13 +34,14 @@ export const CardContent = ({
   const isValidAmount = !!amount;
   return (
     <>
-      <FunkyFontWrapper className="text-2xl py-4">You supply</FunkyFontWrapper>
+      <FunkyFontWrapper className="text-2xl py-4">
+        You {action === "Supply" ? "supply" : "borrow"}
+      </FunkyFontWrapper>
       <div className="flex flex-row gap-3 mb-4">
         <CoinSelect onChange={onCoinChange} value={coin} />
         <Input
           placeholder="E.g.: 0.1"
           value={amount}
-          id="lend-amount"
           onChange={amountChangeHandler}
         />
       </div>
@@ -50,11 +53,11 @@ export const CardContent = ({
             onClick={onSubmit}
             disabled={!isValidAmount}
           >
-            Supply {coin}
+            {action === "Supply" ? "Supply" : "Borrow"} {coin}
           </Button>
         </TooltipTrigger>
         {!isValidAmount && (
-          <TooltipContent side="bottom">Invalid amount</TooltipContent>
+          <TooltipContent side="bottom">Please, provide amount</TooltipContent>
         )}
       </Tooltip>
       <div className="mt-4">

@@ -7,9 +7,10 @@ import {
   DynamicWagmiConnector,
   EthersExtension,
 } from "../lib/dynamic";
-import Navbar from "./navbar";
 import { cn } from "../lib/utils";
 import { TooltipProvider } from "../components/ui/tooltip";
+import { Header } from "../components/ui/header";
+import { Footer } from "../components/ui/footer/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,7 +26,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={cn(inter.className, "flex flex-col items-center")}>
+      <body
+        className={cn(
+          inter.className,
+          "flex flex-col items-center bg-main-gradient",
+        )}
+      >
         <DynamicContextProvider
           settings={{
             environmentId: "2762a57b-faa4-41ce-9f16-abff9300e2c9",
@@ -36,9 +42,10 @@ export default function RootLayout({
           <DynamicWagmiConnector>
             <TooltipProvider>
               <div className="max-w-[1240px] w-full flex flex-col">
-                <Navbar />
+                <Header />
                 {children}
               </div>
+              <Footer />
             </TooltipProvider>
           </DynamicWagmiConnector>
         </DynamicContextProvider>
