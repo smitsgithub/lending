@@ -15,7 +15,7 @@ export const Logo = () => (
       width={36}
       className="inline-block mr-3"
     />
-    <span className="font-[NeueBit] text-[32px] leading-[22.85px]">
+    <span className="font-[NeueBit] text-[32px] leading-[22.85px] text-black">
       lendy
       <span className={styles.logo}>.wtf</span>
     </span>

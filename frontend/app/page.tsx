@@ -5,20 +5,23 @@ import { ActiveMarkets } from "../components/ui/activeMarkets";
 import { YourPositions } from "../components/ui/yourPositions";
 import { useCallback, useEffect, useState } from "react";
 import { CardDialog } from "../components/ui/cardDialog";
-import { Action, Coin } from "../commonTypes";
+import { Action, Coin, RestorativeAction } from "../commonTypes";
 
 export default function Home() {
   useEffect(() => {
     document.documentElement.style.setProperty("--gradient-step", "580px");
   }, []);
   const [dialogProps, setDialogProps] = useState<{
-    action: Action;
+    action: Action | RestorativeAction;
     coin: Coin;
   } | null>(null);
 
-  const handleAction = useCallback((action: Action, coin: Coin) => {
-    setDialogProps({ action, coin });
-  }, []);
+  const handleAction = useCallback(
+    (action: Action | RestorativeAction, coin: Coin) => {
+      setDialogProps({ action, coin });
+    },
+    [],
+  );
   const handleDialogOpenChange = useCallback((opened: boolean) => {
     if (!opened) {
       setDialogProps(null);
@@ -57,28 +60,35 @@ export default function Home() {
         />
         <YourPositions
           netValue={1000}
-          supplying={[
-            {
-              coin: "ETH",
-              name: "Etherium",
-              amount: 1,
-              apy: 28.04,
-            },
-            {
-              coin: "AVAX",
-              name: "Avalanche",
-              amount: 450,
-              apy: 13.04,
-            },
-          ]}
-          borrowing={[
-            {
-              coin: "FTX",
-              name: "FTX",
-              amount: 2553,
-              apy: 13.04,
-            },
-          ]}
+          onAction={handleAction}
+          supplying={{
+            total: 1000,
+            positions: [
+              {
+                coin: "ETH",
+                name: "Etherium",
+                amount: 1,
+                apy: 28.04,
+              },
+              {
+                coin: "AVAX",
+                name: "Avalanche",
+                amount: 450,
+                apy: 13.04,
+              },
+            ],
+          }}
+          borrowing={{
+            total: 1000,
+            positions: [
+              {
+                coin: "FTX",
+                name: "FTX",
+                amount: 2553,
+                apy: 13.04,
+              },
+            ],
+          }}
         />
       </section>
     </main>
