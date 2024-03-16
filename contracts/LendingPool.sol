@@ -11,8 +11,6 @@ import "./interfaces/IPriceOracle.sol";
 import "./interfaces/IVestingAlpha.sol";
 import "./AlToken.sol";
 import "./AlTokenDeployer.sol";
-import "./libraries/WadMath.sol";
-import "./libraries/Math.sol";
 
 /**
  * @title Lending pool contract
@@ -22,8 +20,6 @@ import "./libraries/Math.sol";
  **/
 
 contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
-  using WadMath for uint256;
-  using Math for uint256;
 
   /*
    * Lending pool smart contracts
