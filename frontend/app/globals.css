@@ -6,7 +6,12 @@
     font-family: NeueBit;
     src: url("./fonts/PPNeueBit-Bold.otf") format("opentype");
 }
- 
+
+:root {
+  --gradient-step: 580px;
+}
+
+
 @layer base {
   :root {
     --background: 0 0% 100%;

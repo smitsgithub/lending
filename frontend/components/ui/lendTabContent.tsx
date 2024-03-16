@@ -6,6 +6,7 @@ import { Input } from "./input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { Action, Coin } from "../../commonTypes";
 import { cn } from "../../lib/utils";
+import { MiniTable } from "./miniTable";
 
 export const CardContent = ({
   amount,
@@ -60,20 +61,7 @@ export const CardContent = ({
           <TooltipContent side="bottom">Please, provide amount</TooltipContent>
         )}
       </Tooltip>
-      <div className="mt-4">
-        {infoRows.map((r, i) => (
-          <div
-            key={r.title}
-            className={cn(
-              "flex rounded-lg px-2 py-[2px] h-8 items-center justify-between opacity-60",
-              i % 2 === 0 && "bg-opacity-5 bg-black",
-            )}
-          >
-            <span>{r.title}</span>
-            <span>{r.value}</span>
-          </div>
-        ))}
-      </div>
+      <MiniTable rounded infoRows={infoRows} />
     </>
   );
 };

@@ -16,3 +16,4 @@ export type Position = {
 };
 
 export type Action = "Supply" | "Borrow";
+export type RestorativeAction = "Withdraw" | "Repay";

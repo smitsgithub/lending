@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import footerImage from "./footer.png";
-import { Logo } from "../logo/logo";
+import { Logo } from "../logo";
 import { scrollToTop } from "../../../helpers";
 import Link from "next/dist/client/link";
 

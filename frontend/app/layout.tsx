@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import bgSrc from "./bg.png";
 import {
   DynamicContextProvider,
   EthereumWalletConnectors,
@@ -15,7 +16,7 @@ import { Footer } from "../components/ui/footer/footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "lendy.wtf",
+  title: "shadefi",
   description: "Privacy-first app for lending and borrowing",
 };
 
@@ -29,7 +30,7 @@ export default function RootLayout({
       <body
         className={cn(
           inter.className,
-          "flex flex-col items-center bg-main-gradient",
+          "flex flex-col items-center bg-main-gradient min-h-screen",
         )}
       >
         <DynamicContextProvider
@@ -41,7 +42,15 @@ export default function RootLayout({
         >
           <DynamicWagmiConnector>
             <TooltipProvider>
-              <div className="max-w-[1240px] w-full flex flex-col">
+              <div
+                className="max-w-[1240px] w-full flex flex-col bg-no-repeat bg-cover flex-grow"
+                style={{
+                  backgroundImage: `url('${bgSrc.src}')`,
+                  backgroundSize: "80%",
+                  backgroundPositionY: 280,
+                  backgroundPositionX: "center",
+                }}
+              >
                 <Header />
                 {children}
               </div>
