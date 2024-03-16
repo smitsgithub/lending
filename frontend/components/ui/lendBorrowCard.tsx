@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Coin } from "../../commonTypes";
 import { Card } from "./card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
-import { LendTabContent } from "./lendTabContent";
+import { CardContent } from "./lendTabContent";
 
 export const LendBorrowCard = () => {
   const [tab, setTab] = useState("lend");
@@ -46,16 +46,14 @@ export const LendBorrowCard = () => {
           <TabsTrigger value="lend">Lend</TabsTrigger>
           <TabsTrigger value="borrow">Borrow</TabsTrigger>
         </TabsList>
-        <TabsContent value="lend" className="justify-stretch">
-          <LendTabContent
-            amount={amount}
-            onAmountChange={setAmount}
-            coin={coin}
-            onCoinChange={setCoin}
-            onSubmit={onAmountConfirm}
-            infoRows={infoRows}
-          />
-        </TabsContent>
+        <CardContent
+          amount={amount}
+          onAmountChange={setAmount}
+          coin={coin}
+          onCoinChange={setCoin}
+          onSubmit={onAmountConfirm}
+          infoRows={infoRows}
+        />
       </Tabs>
     </Card>
   );

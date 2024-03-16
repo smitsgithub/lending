@@ -27,18 +27,17 @@ export const CircularProgress = ({
       r="54"
       fill="none"
       stroke="#e6e6e6"
-      stroke-width="12"
+      strokeWidth="12"
     />
     <circle
       strokeDasharray={100}
       strokeDashoffset={100}
-      // stroke-linecap: round;
       cx="60"
       cy="60"
       r="54"
       fill="none"
       stroke="#81E51C"
-      stroke-width="12"
+      strokeWidth="12"
       pathLength="100"
       style={{
         strokeDashoffset: 100 - percent,

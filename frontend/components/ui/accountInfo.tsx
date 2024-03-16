@@ -2,6 +2,7 @@ import { cn } from "../../lib/utils";
 import { CircularProgress } from "./circularProgress";
 import { FunkyFontWrapper } from "./funkyFontWrapper";
 import { Icon } from "./icons";
+import { VerticalDivider } from "./verticalDivider";
 
 export const AccountInfo = () => {
   const items = [
@@ -40,7 +41,7 @@ export const AccountInfo = () => {
           />
         );
       })}
-      <div className="w-[1px] bg-[#D9D9D9]" />
+      <VerticalDivider />
       <AccountInfoItem
         title="ACCOUNT HEALTH"
         floatRight

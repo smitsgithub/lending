@@ -1,3 +1,4 @@
+"use client";
 import { LendBorrowCard } from "../components/ui/lendBorrowCard";
 import { AccountInfo } from "../components/ui/accountInfo";
 import { ActiveMarkets } from "../components/ui/activeMarkets";
@@ -10,8 +11,27 @@ export default function Home() {
         <LendBorrowCard />
         <AccountInfo />
       </section>
-      <section className="mt-9 mb-[204px]">
-        <ActiveMarkets />
+      <section className="mt-9 mb-[204px] w-full">
+        <ActiveMarkets
+          onSupply={() => {}}
+          onBorrow={() => {}}
+          markets={[
+            {
+              coin: "ETH",
+              name: "Etherium",
+              poolUtilization: 97,
+              supplyAPY: 28.5,
+              borrowAPY: 18.5,
+            },
+            {
+              coin: "AVAX",
+              name: "Avalanche",
+              poolUtilization: 97,
+              supplyAPY: 13.4,
+              borrowAPY: 18.5,
+            },
+          ]}
+        />
         <YourStake />
       </section>
     </main>

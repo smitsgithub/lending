@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { Coin } from "../../commonTypes";
 import { cn } from "../../lib/utils";
 
-export const LendTabContent = ({
+export const CardContent = ({
   amount,
   onAmountChange,
   coin,
@@ -34,17 +34,22 @@ export const LendTabContent = ({
     <>
       <FunkyFontWrapper className="text-2xl py-4">You supply</FunkyFontWrapper>
       <div className="flex flex-row gap-3 mb-4">
+        <CoinSelect onChange={onCoinChange} value={coin} />
         <Input
           placeholder="E.g.: 0.1"
           value={amount}
           id="lend-amount"
           onChange={amountChangeHandler}
         />
-        <CoinSelect onChange={onCoinChange} value={coin} />
       </div>
       <Tooltip delayDuration={200} disableHoverableContent>
         <TooltipTrigger asChild>
-          <Button onClick={onSubmit} disabled={!isValidAmount}>
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={onSubmit}
+            disabled={!isValidAmount}
+          >
             Supply {coin}
           </Button>
         </TooltipTrigger>
