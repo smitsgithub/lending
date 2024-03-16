@@ -10,7 +10,7 @@ import { FHE, euint16, inEuint16 } from "@fhenixprotocol/contracts/FHE.sol";
 
 contract MockLendingPool is LendingPool {
 
-  constructor(AlTokenDeployer _alTokenDeployer) public LendingPool(_alTokenDeployer) {}
+  constructor(AlTokenDeployer _alTokenDeployer) LendingPool(_alTokenDeployer) {}
 
   function setPool(
     FHERC20 _token,
@@ -20,7 +20,7 @@ contract MockLendingPool is LendingPool {
     Pool storage pool = pools[address(_token)];
     pool.totalBorrows = _totalBorrows;
     pool.totalBorrowShares = _totalBorrowShares;
-    pool.lastUpdateTimestamp = now;
+    pool.lastUpdateTimestamp = block.timestamp;
   }
 
   function setUserPool(
@@ -41,7 +41,7 @@ contract MockLendingPool is LendingPool {
 
   function mintEncryptedAlToken(FHERC20 _token, address _recipient, inEuint16 calldata _amount) external {
     Pool storage pool = pools[address(_token)];
-    pool.alToken.mintEncrypted(_recipient, _amount);
+    pool.alToken.mintEncryptedTo(_recipient, FHE.asEuint16(_amount));
   }
 
   function burnEncryptedAlToken(
@@ -50,7 +50,7 @@ contract MockLendingPool is LendingPool {
     inEuint16 calldata _amount
   ) external {
     Pool storage pool = pools[address(_token)];
-    pool.alToken.burnEncrypted(_user, _amount);
+    pool.alToken.burnEncryptedTo(_user, FHE.asEuint16(_amount));
   }
 
   function callAction(FHERC20 _token) external updatePoolWithInterestsAndTimestamp(_token) {}
@@ -116,8 +116,8 @@ contract MockLendingPool is LendingPool {
     FHERC20 _token,
     euint16 _liquidateAmount,
     FHERC20 _collateral
-  ) external view returns (euint16) {
-    return calculateCollateralAmount(_token, _liquidateAmount, _collateral);
+  ) external view returns (uint256) {
+    return calculateCollateralAmount(_token, FHE.decrypt(_liquidateAmount), _collateral);
   }
 
 }

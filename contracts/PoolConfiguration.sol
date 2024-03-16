@@ -37,9 +37,9 @@ contract PoolConfiguration is IPoolConfiguration, Ownable {
    */
 
   // optimal utilization rate at 80%
-  uint16 public constant OPTIMAL_UTILIZATION_RATE = 0.8 * 1e18;
+  uint16 public constant OPTIMAL_UTILIZATION_RATE = 0.8 * 1e2;
   // excess utilization rate at 20%
-  uint16 public constant EXCESS_UTILIZATION_RATE = 0.2 * 1e18;
+  uint16 public constant EXCESS_UTILIZATION_RATE = 0.2 * 1e2;
 
   uint16 public baseBorrowRate;
   uint16 public rateSlope1;
@@ -53,7 +53,7 @@ contract PoolConfiguration is IPoolConfiguration, Ownable {
     uint16 _rateSlope2,
     uint16 _collateralPercent,
     uint16 _liquidationBonusPercent
-  ) Ownable(msg.sender) public {
+  ) Ownable(msg.sender) {
     baseBorrowRate = _baseBorrowRate;
     rateSlope1 = _rateSlope1;
     rateSlope2 = _rateSlope2;
@@ -117,13 +117,13 @@ contract PoolConfiguration is IPoolConfiguration, Ownable {
     uint16 utilizationRate = getUtilizationRate(_totalBorrows, _totalLiquidity);
 
     if (utilizationRate > OPTIMAL_UTILIZATION_RATE) {
-      uint256 excessUtilizationRateRatio = utilizationRate.sub(OPTIMAL_UTILIZATION_RATE).div(
+      uint256 excessUtilizationRateRatio = (utilizationRate - OPTIMAL_UTILIZATION_RATE) / (
         EXCESS_UTILIZATION_RATE
       );
-      return baseBorrowRate.add(rateSlope1).add(rateSlope2.mul(excessUtilizationRateRatio));
+      return (baseBorrowRate + (rateSlope1) + (rateSlope2)) * uint16(excessUtilizationRateRatio);
     } else {
       return
-        baseBorrowRate.add(utilizationRate.mul(rateSlope1).div(OPTIMAL_UTILIZATION_RATE));
+        baseBorrowRate + ((utilizationRate * (rateSlope1)) / (OPTIMAL_UTILIZATION_RATE));
     }
   }
 

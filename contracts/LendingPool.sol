@@ -14,7 +14,7 @@ import "./interfaces/IVestingAlpha.sol";
 import "./AlToken.sol";
 import "./AlTokenDeployer.sol";
 
-import { FHE, euint16, inEuint16 } from "@fhenixprotocol/contracts/FHE.sol";
+import { FHE, euint16, inEuint16, ebool  } from "@fhenixprotocol/contracts/FHE.sol";
 
 
 /**
@@ -634,7 +634,8 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
   function isAccountHealthy(address _user) public override view returns (bool) {
     (, euint16 totalCollateralBalanceBase, euint16 totalBorrowBalanceBase) = getUserAccount(_user);
 
-    return FHE.select(totalBorrowBalanceBase.lte(totalCollateralBalanceBase),totalBorrowBalanceBase,totalCollateralBalanceBase);
+   ebool Healthy = FHE.select(totalBorrowBalanceBase.lte(totalCollateralBalanceBase),FHE.asEbool(true),FHE.asEbool(false));
+   return FHE.decrypt(Healthy);
   }
 
   /**
@@ -670,20 +671,20 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
         uint256 poolPricePerUnit = priceOracle.getAssetPrice(address(_token));
         require(poolPricePerUnit > 0, "token price isn't correct");
 
-        uint256 liquidityBalanceBase = poolPricePerUnit.mul(FHE.decrypt(compoundedLiquidityBalance));
-        totalLiquidityBalanceBase = totalLiquidityBalanceBase.add(liquidityBalanceBase);
-        totalLiquidityBalanceBase = FHE.asEuint16(totalLiquidityBalanceBase);
+        uint256 liquidityBalanceBase = poolPricePerUnit * FHE.decrypt(compoundedLiquidityBalance);
+        totalLiquidityBalanceBase = totalLiquidityBalanceBase.add(FHE.asEuint16(liquidityBalanceBase));
+        totalLiquidityBalanceBase = totalLiquidityBalanceBase;
         // this pool can use as collateral when collateralPercent more than 0.
         if (collateralPercent > 0 && userUsePoolAsCollateral) {
           totalCollateralBalanceBase = totalCollateralBalanceBase.add(
-            liquidityBalanceBase.mul(collateralPercent)
+            FHE.asEuint16(liquidityBalanceBase * collateralPercent)
           );
-          totalCollateralBalanceBase = FHE.asEuint16(totalCollateralBalanceBase);
+          totalCollateralBalanceBase = totalCollateralBalanceBase;
         }
         totalBorrowBalanceBase = totalBorrowBalanceBase.add(
-          poolPricePerUnit.mul(compoundedBorrowBalance)
+          FHE.asEuint16(poolPricePerUnit).mul(compoundedBorrowBalance)
         );
-        totalBorrowBalanceBase = FHE.asEuint16(totalBorrowBalanceBase);
+        totalBorrowBalanceBase = totalBorrowBalanceBase;
     }
   }
 
@@ -717,7 +718,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     euint16 amount = FHE.asEuint16(_amount);
 
     // 1. calculate liquidity share amount
-    euint16 shareAmount = calculateRoundDownLiquidityShareAmount(_token, _amount);
+    euint16 shareAmount = calculateRoundDownLiquidityShareAmount(_token, amount);
 
     // 2. mint alToken to user equal to liquidity share amount
     pool.alToken.mintEncryptedTo(msg.sender, shareAmount);
@@ -725,7 +726,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     // 3. transfer user deposit liquidity to the pool
     _token.transferFromEncrypted(msg.sender, address(this), _amount);
 
-    emit Deposit(address(_token), msg.sender, shareAmount, _amount);
+    // emit Deposit(address(_token), msg.sender, shareAmount, _amount);
   }
 
   /**
@@ -756,95 +757,23 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     claimCurrentAlphaReward(_token, msg.sender);
 
     // 1. calculate borrow share amount
-    uint256 borrowShare = calculateRoundUpBorrowShareAmount(_token, _amount);
+    euint16 borrowShare = calculateRoundUpBorrowShareAmount(_token, amount);
 
     // 2. update pool state
-    pool.totalBorrows = pool.totalBorrows.add(_amount);
+    pool.totalBorrows = pool.totalBorrows.add(amount);
     pool.totalBorrowShares = pool.totalBorrowShares.add(borrowShare);
 
     // 3. update user state
     userData.borrowShares = userData.borrowShares.add(borrowShare);
 
     // 4. transfer borrowed token from pool to user
-    _token.safeTransfer(msg.sender, _amount);
+    _token.transferEncrypted(msg.sender, _amount);
 
     // 5. check account health. this transaction will revert if the account of this user is not healthy
     require(isAccountHealthy(msg.sender), "account is not healthy. can't borrow");
-    emit Borrow(address(_token), msg.sender, borrowShare, _amount);
+    // emit Borrow(address(_token), msg.sender, borrowShare, _amount);
   }
 
-  /**
-   * @dev repay the ERC20 token to the pool equal to repay amount
-   * @param _token the ERC20 token of the pool that user want to repay
-   * @param _amount the repay amount
-   * User can call this function to repay the ERC20 token to the pool. For user's convenience,
-   * this function will convert repay amount to repay shares then do the repay.
-   */
-  function repayByAmount(FHERC20 _token, uint256 _amount)
-    external
-    nonReentrant
-    updatePoolWithInterestsAndTimestamp(_token)
-    updateAlphaReward
-  {
-    // calculate round down borrow share
-    uint256 repayShare = calculateRoundDownBorrowShareAmount(_token, _amount);
-    repayInternal(_token, repayShare);
-  }
-
-  /**
-   * @dev repay the ERC20 token to the pool equal to repay shares
-   * @param _token the ERC20 token of the pool that user want to repay
-   * @param _share the amount of borrow shares thet user want to repay
-   * User can call this function to repay the ERC20 token to the pool.
-   * This function will do the repay equal to repay shares
-   */
-  function repayByShare(FHERC20 _token, uint256 _share)
-    external
-    nonReentrant
-    updatePoolWithInterestsAndTimestamp(_token)
-    updateAlphaReward
-  {
-    repayInternal(_token, _share);
-  }
-
-  /**
-   * @dev repay the ERC20 token to the pool equal to repay shares
-   * @param _token the ERC20 token of the pool that user want to repay
-   * @param _share the amount of borrow shares thet user want to repay
-   * Internal function that do the repay. If Alice want to repay 10 borrow shares then the repay shares is 10.
-   * this function will repay the ERC20 token of Alice equal to repay shares value to the pool.
-   * If 1 repay shares equal to 2 Hello tokens then Alice will repay 20 Hello tokens to the pool. the Alice's
-   * borrow shares will be decreased.
-   */
-  function repayInternal(FHERC20 _token, uint256 _share) internal {
-    Pool storage pool = pools[address(_token)];
-    UserPoolData storage userData = userPoolData[msg.sender][address(_token)];
-    require(
-      pool.status == PoolStatus.ACTIVE || pool.status == PoolStatus.CLOSED,
-      "can't repay to this pool"
-    );
-    uint256 paybackShares = _share;
-    if (paybackShares > userData.borrowShares) {
-      paybackShares = userData.borrowShares;
-    }
-
-    // 0. Claim alpha token from latest borrow
-    claimCurrentAlphaReward(_token, msg.sender);
-
-    // 1. calculate round up payback token
-    euint16 paybackAmount = calculateRoundUpBorrowAmount(_token, paybackShares);
-
-    // 2. update pool state
-    pool.totalBorrows = pool.totalBorrows.sub(paybackAmount);
-    pool.totalBorrowShares = pool.totalBorrowShares.sub(paybackShares);
-
-    // 3. update user state
-    userData.borrowShares = userData.borrowShares.sub(paybackShares);
-
-    // 4. transfer payback tokens to the pool
-    _token.safeTransferFrom(msg.sender, address(this), paybackAmount);
-    emit Repay(address(_token), msg.sender, paybackShares, paybackAmount);
-  }
 
   /**
    * @dev withdraw the ERC20 token from the pool
@@ -857,35 +786,35 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * Note: Bob cannot withdraw his alHello if his account is not healthy which means he uses all of his liquidity as
    * collateral to cover his loan so he cannot withdraw or transfer his alHello.
    */
-  function withdraw(FHERC20 _token, uint256 _share)
+  function withdraw(FHERC20 _token, inEuint16 calldata _share)
     external
     nonReentrant
     updatePoolWithInterestsAndTimestamp(_token)
     updateAlphaReward
   {
     Pool storage pool = pools[address(_token)];
-    uint256 alBalance = pool.alToken.balanceOf(msg.sender);
+    euint16 alBalance = pool.alToken.balanceOfSealed(msg.sender);
     require(
       pool.status == PoolStatus.ACTIVE || pool.status == PoolStatus.CLOSED,
       "can't withdraw this pool"
     );
-    uint256 withdrawShares = _share;
-    if (withdrawShares > alBalance) {
-      withdrawShares = alBalance;
-    }
+   euint16 withdrawShares = FHE.asEuint16(_share);
+
+   withdrawShares = FHE.select(withdrawShares.gt(alBalance),alBalance, withdrawShares);
+
 
     // 1. calculate liquidity amount from shares
     euint16 withdrawAmount = calculateRoundDownLiquidityAmount(_token, withdrawShares);
 
     // 2. burn al tokens of user equal to shares
-    pool.alToken.burn(msg.sender, withdrawShares);
+    pool.alToken.burnEncryptedTo(msg.sender, withdrawShares);
 
     // 3. transfer ERC20 tokens to user account
-    _token.transfer(msg.sender, withdrawAmount);
+    _token.transferEncrypted(msg.sender, withdrawAmount);
 
     // 4. check account health. this transaction will revert if the account of this user is not healthy
     require(isAccountHealthy(msg.sender), "account is not healthy. can't withdraw");
-    emit Withdraw(address(_token), msg.sender, withdrawShares, withdrawAmount);
+    // emit Withdraw(address(_token), msg.sender, withdrawShares, withdrawAmount);
   }
 
   /**
@@ -971,50 +900,50 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     );
 
     // 4. check if the user has borrowed tokens that liquidator want to liquidate
-    require(userTokenData.borrowShares > 0, "user didn't borrow this token");
+    // require(userTokenData.borrowShares > 0, "user didn't borrow this token");
 
     // 5. calculate liquidate amount and shares
-    uint256 maxPurchaseShares = userTokenData.borrowShares.mul(CLOSE_FACTOR);
+    uint256 maxPurchaseShares = FHE.decrypt(userTokenData.borrowShares) * (CLOSE_FACTOR);
     uint256 liquidateShares = _liquidateShares;
     if (liquidateShares > maxPurchaseShares) {
       liquidateShares = maxPurchaseShares;
     }
-    euint16 liquidateAmount = calculateRoundUpBorrowAmount(_token, liquidateShares);
+    euint16 liquidateAmount = calculateRoundUpBorrowAmount(_token, FHE.asEuint16(liquidateShares));
 
     // 6. calculate collateral amount and shares
-    uint256 collateralAmount = calculateCollateralAmount(_token, liquidateAmount, _collateral);
-    uint256 collateralShares = calculateRoundUpLiquidityShareAmount(_collateral, collateralAmount);
+    uint256 collateralAmount = calculateCollateralAmount(_token, FHE.decrypt(liquidateAmount), _collateral);
+    uint256 collateralShares = FHE.decrypt(calculateRoundUpLiquidityShareAmount(_collateral, FHE.asEuint16(collateralAmount)));
 
     // 7. transfer liquidate amount to the pool
-    _token.safeTransferFrom(msg.sender, address(this), liquidateAmount);
+    _token.transferFromEncrypted(msg.sender, address(this), liquidateAmount);
 
     // 8. burn al token of user equal to collateral shares
     require(
       collateralPool.alToken.balanceOf(_user) > collateralShares,
       "user collateral isn't enough"
     );
-    collateralPool.alToken.burn(_user, collateralShares);
+    collateralPool.alToken.burnEncryptedTo(_user, FHE.asEuint16(collateralShares));
 
     // 9. mint al token equal to collateral shares to liquidator
-    collateralPool.alToken.mint(msg.sender, collateralShares);
+    collateralPool.alToken.mintEncryptedTo(msg.sender, FHE.asEuint16(collateralShares));
 
     // 10. update pool state
     pool.totalBorrows = pool.totalBorrows.sub(liquidateAmount);
-    pool.totalBorrowShares = pool.totalBorrowShares.sub(liquidateShares);
+    pool.totalBorrowShares = pool.totalBorrowShares.sub(FHE.asEuint16(liquidateShares));
 
     // 11. update user state
-    userTokenData.borrowShares = userTokenData.borrowShares.sub(liquidateShares);
+    userTokenData.borrowShares = userTokenData.borrowShares.sub(FHE.asEuint16(liquidateShares));
 
-    emit Liquidate(
-      _user,
-      address(_token),
-      address(_collateral),
-      liquidateAmount,
-      liquidateShares,
-      collateralAmount,
-      collateralShares,
-      msg.sender
-    );
+    // emit Liquidate(
+    //   _user,
+    //   address(_token),
+    //   address(_collateral),
+    //   liquidateAmount,
+    //   liquidateShares,
+    //   collateralAmount,
+    //   collateralShares,
+    //   msg.sender
+    // );
   }
 
   /**
@@ -1041,7 +970,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
     require(collateralPricePerUnit > 0, "collateral price isn't correct");
     uint256 liquidationBonus = pools[address(_token)].poolConfig.getLiquidationBonusPercent();
     return (
-      tokenPricePerUnit.mul(_liquidateAmount).mul(liquidationBonus).div(collateralPricePerUnit)
+     (tokenPricePerUnit * _liquidateAmount *  liquidationBonus) / (collateralPricePerUnit)
     );
   }
 
@@ -1060,20 +989,21 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * @param _token the ERC20 token of the pool to withdraw
    * @param _amount amount to withdraw
    */
-  function withdrawReserve(FHERC20 _token, uint256 _amount)
+  function withdrawReserve(FHERC20 _token, inEuint16 calldata _amount)
     external
     nonReentrant
     updatePoolWithInterestsAndTimestamp(_token)
     onlyOwner
   {
     Pool storage pool = pools[address(_token)];
-    uint256 poolBalance = _token.balanceOf(address(this));
-    require(_amount <= poolBalance, "pool balance insufficient");
+    euint16 amount = FHE.asEuint16(_amount);
+    euint16 poolBalance = _token.balanceOfSealed(address(this));
+    // require(_amount <= poolBalance, "pool balance insufficient");
     // admin can't withdraw more than pool's reserve
-    require(_amount <= pool.poolReserves, "amount is more than pool reserves");
-    _token.safeTransfer(msg.sender, _amount);
-    pool.poolReserves = pool.poolReserves.sub(_amount);
-    emit ReserveWithdrawn(address(_token), _amount, msg.sender);
+    // require(_amount <= pool.poolReserves, "amount is more than pool reserves");
+    _token.transferEncrypted(msg.sender, amount);
+    pool.poolReserves = pool.poolReserves.sub(amount);
+    // emit ReserveWithdrawn(address(_token), _amount, msg.sender);
   }
 
   // ================== 💸💸💸 Distribute AlphaToken 💸💸💸 ========================
@@ -1097,37 +1027,37 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * receive Alpha token rewards from the distributor
    * @param _amount the amount of Alpha token to receive
    */
-  function receiveAlpha(uint256 _amount) external {
-    require(msg.sender == address(distributor), "Only distributor can call receive Alpha");
-    // Calculate total borrow value.
-    uint256[] memory borrows = new uint256[](tokenList.length);
-    uint256 totalBorrow = 0;
+  // function receiveAlpha(euint16 _amount) external {
+  //   require(msg.sender == address(distributor), "Only distributor can call receive Alpha");
+  //   // Calculate total borrow value.
+  //   euint16[] memory borrows = new euint16[](tokenList.length);
+  //   euint16 totalBorrow = ENCRYPTED_ZERO;
 
-    for (uint256 i = 0; i < tokenList.length; i++) {
-      if (pools[address(tokenList[i])].status == PoolStatus.ACTIVE) {
-        borrows[i] = totalBorrowInUSD(tokenList[i]);
-        totalBorrow = totalBorrow.add(borrows[i]);
-      }
-    }
-    // This contract should not receive alpha token if no borrow value lock in.
-    if (totalBorrow == 0) {
-      return;
-    }
-    distributor.alphaToken().transferFrom(msg.sender, address(this), _amount);
-    for (uint256 i = 0; i < borrows.length; i++) {
-      Pool storage pool = pools[address(tokenList[i])];
-      if (pool.status == PoolStatus.ACTIVE) {
-        uint256 portion = _amount.mul(borrows[i]).div(totalBorrow);
-        (uint256 lendersGain, uint256 borrowersGain) = splitReward(tokenList[i], portion);
-        // Distribute the Alpha token to the lenders (AlToken holder)
-        distributor.alphaToken().approve(address(pool.alToken), lendersGain);
-        pool.alToken.receiveAlpha(lendersGain);
+  //   for (uint256 i = 0; i < tokenList.length; i++) {
+  //     if (pools[address(tokenList[i])].status == PoolStatus.ACTIVE) {
+  //       borrows[i] = totalBorrowInUSD(tokenList[i]);
+  //       totalBorrow = totalBorrow.add(borrows[i]);
+  //     }
+  //   }
+  //   // This contract should not receive alpha token if no borrow value lock in.
+  //   // if (totalBorrow == 0) {
+  //   //   return;
+  //   // }
+  //   distributor.alphaToken().transferFromEncrypted(msg.sender, address(this), _amount);
+  //   for (uint256 i = 0; i < borrows.length; i++) {
+  //     Pool storage pool = pools[address(tokenList[i])];
+  //     if (pool.status == PoolStatus.ACTIVE) {
+  //       euint16 portion = _amount.mul(borrows[i]).div(totalBorrow);
+  //       (uint256 lendersGain, uint256 borrowersGain) = splitReward(tokenList[i], FHE.decrypt(portion));
+  //       // Distribute the Alpha token to the lenders (AlToken holder)
+  //       distributor.alphaToken().approve(address(pool.alToken), lendersGain);
+  //       pool.alToken.receiveAlpha(FHE.asEuint16(lendersGain));
 
-        // Distribute the Alpha token to the borrowers
-        updateBorrowAlphaReward(pool, borrowersGain);
-      }
-    }
-  }
+  //       // Distribute the Alpha token to the borrowers
+  //       updateBorrowAlphaReward(pool, FHE.asEuint16(borrowersGain));
+  //     }
+  //   }
+  // }
 
   /**
    * @dev claim Alpha token rewards from all ERC20 token pools and create receipt for caller
@@ -1149,53 +1079,53 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard {
    * @param _pool the ERC20 token pool to update the Alpha rewards
    * @param _amount the total amount of the rewards to all borrowers of the pool
    */
-  function updateBorrowAlphaReward(Pool storage _pool, uint256 _amount) internal {
+  function updateBorrowAlphaReward(Pool storage _pool, euint16 _amount) internal {
     _pool.totalAlphaTokenReward = _pool.totalAlphaTokenReward.add(_amount);
-    if (_pool.totalBorrowShares == 0) {
-      return;
-    }
+    // if (_pool.totalBorrowShares == 0) {
+    //   return;
+    // }
     _pool.alphaMultiplier = _pool.alphaMultiplier.add(
-      _amount.mul(1e12).div(_pool.totalBorrowShares)
+      _amount.div(_pool.totalBorrowShares)
     );
   }
 
-  /**
-   * @dev split the Alpha rewards between the lenders and borrowers
-   * @param _token the ERC20 token pool
-   * @param _amount the amount of Alpha token rewards to split
-   * @return lendersGain - the rewards's lenders gain
-   * borrowersGain - the rewards's borrower gain
-   */
-  function splitReward(FHERC20 _token, uint256 _amount)
-    internal
-    view
-    returns (uint256 lendersGain, uint256 borrowersGain)
-  {
-    Pool storage pool = pools[address(_token)];
-    uint256 utilizationRate = pool.poolConfig.getUtilizationRate(
-      pool.totalBorrows,
-      getTotalLiquidity(_token)
-    );
-    uint256 optimal = pool.poolConfig.getOptimalUtilizationRate();
-    if (utilizationRate <= optimal) {
-      // lenders gain = amount * ((EQUILIBRIUM / OPTIMAL) * utilization rate)
-      lendersGain = (optimal == 0)
-        ? 0
-        : _amount.mul(EQUILIBRIUM).mul(utilizationRate).div(optimal);
-    } else {
-      // lenders gain = amount * ((EQUILIBRIUM * (utilization rate - OPTIMAL)) / (MAX_UTILIZATION_RATE - OPTIMAL)) + EQUILIBRIUM)
-      lendersGain = (utilizationRate >= MAX_UTILIZATION_RATE)
-        ? _amount
-        : _amount.mul(
-          EQUILIBRIUM
-            .mul(utilizationRate.sub(optimal))
-            .div(MAX_UTILIZATION_RATE.sub(optimal))
-            .add(EQUILIBRIUM)
-        );
-    }
-    // borrowers gain = amount - lenders gain
-    borrowersGain = _amount.sub(lendersGain);
-  }
+  // /**
+  //  * @dev split the Alpha rewards between the lenders and borrowers
+  //  * @param _token the ERC20 token pool
+  //  * @param _amount the amount of Alpha token rewards to split
+  //  * @return lendersGain - the rewards's lenders gain
+  //  * borrowersGain - the rewards's borrower gain
+  //  */
+  // function splitReward(FHERC20 _token, uint256 _amount)
+  //   internal
+  //   view
+  //   returns (uint256 lendersGain, uint256 borrowersGain)
+  // {
+  //   Pool storage pool = pools[address(_token)];
+  //   uint256 utilizationRate = pool.poolConfig.getUtilizationRate(
+  //     pool.totalBorrows,
+  //     getTotalLiquidity(_token)
+  //   );
+  //   uint256 optimal = pool.poolConfig.getOptimalUtilizationRate();
+  //   if (utilizationRate <= optimal) {
+  //     // lenders gain = amount * ((EQUILIBRIUM / OPTIMAL) * utilization rate)
+  //     lendersGain = (optimal == 0)
+  //       ? 0
+  //       : _amount.mul(EQUILIBRIUM).mul(utilizationRate).div(optimal);
+  //   } else {
+  //     // lenders gain = amount * ((EQUILIBRIUM * (utilization rate - OPTIMAL)) / (MAX_UTILIZATION_RATE - OPTIMAL)) + EQUILIBRIUM)
+  //     lendersGain = (utilizationRate >= MAX_UTILIZATION_RATE)
+  //       ? _amount
+  //       : _amount.mul(
+  //         EQUILIBRIUM
+  //           .mul(utilizationRate.sub(optimal))
+  //           .div(MAX_UTILIZATION_RATE.sub(optimal))
+  //           .add(EQUILIBRIUM)
+  //       );
+  //   }
+  //   // borrowers gain = amount - lenders gain
+  //   borrowersGain = _amount.sub(lendersGain);
+  // }
 
   function calculateAlphaReward(FHERC20 _token, address _account) public view returns (euint16) {
     Pool storage pool = pools[address(_token)];
