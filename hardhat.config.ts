@@ -40,7 +40,15 @@ if (!keys) {
 }
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.20",
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1000,
+      },
+    },
+  },
   // Optional: defaultNetwork is already being set to "localfhenix" by fhenix-hardhat-plugin
   defaultNetwork: "localfhenix",
   networks: {
