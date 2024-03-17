@@ -4,20 +4,20 @@ async function deploy() {
   const accounts = await hre.ethers.getSigners();
   const contractOwner = accounts[0];
 
-  //   const priceOracleInstance = await hre.ethers.getContractFactory(
-  //     "MockPriceOracle",
-  //   );
+  const priceOracleInstance = await hre.ethers.getContractFactory(
+    "MockPriceOracle",
+  );
 
   //   const Factory = await hre.ethers.getContractFactory("Factory");
   //   const Router = await hre.ethers.getContractFactory("Router");
 
-  //   const priceOracleInstanceContract = await priceOracleInstance
-  //     .connect(contractOwner)
-  //     .deploy({ gasLimit: 900000000 });
-  //   await priceOracleInstanceContract.waitForDeployment();
+  const priceOracleInstanceContract = await priceOracleInstance
+    .connect(contractOwner)
+    .deploy({ gasLimit: 900000000 });
+  await priceOracleInstanceContract.waitForDeployment();
 
   const priceOracleInstanceAddress =
-    "0xCCF4A3DDf6fe9D48231e01aEC5632f1a850BFa20";
+    await priceOracleInstanceContract.getAddress();
 
   //   console.log(
   //     `priceOracleInstanceContract deployed to: ${priceOracleInstanceAddress}`,
@@ -30,7 +30,7 @@ async function deploy() {
 
   const lendingContract = await hre.ethers.getContractAt(
     "MockLendingPool",
-    "0xED18a7af35A41A9AAee7eccaAfAf60E42536eA69",
+    "0xf37E5E5f1641DB2AbEd5c5321DE13CE44d77936A",
   );
 
   //   const setOracle = await lendingContract.setPriceOracle(

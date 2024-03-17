@@ -23,7 +23,7 @@ async function LendingCall() {
   //   USDFHENIX, USDF deployed to: 0x881e4Dc39fAD59Ea8361E52115b037D478a6AE09
 
   const lendingDeployerContractAddress =
-    "0xED18a7af35A41A9AAee7eccaAfAf60E42536eA69";
+    "0xf37E5E5f1641DB2AbEd5c5321DE13CE44d77936A";
   const FHEAddress = "0x1b38A893b5b46aaca4BbBB65a91F1bf271f0110C";
   const USDFAddress = "0x881e4Dc39fAD59Ea8361E52115b037D478a6AE09";
   const ConfigContract = "0x0Bb5C78F9367D6c188D6b1C139216F23B44C3C7B";

@@ -4,7 +4,7 @@ import { FhenixClient, Permit, getPermit, removePermit } from "fhenixjs";
 async function deploy() {
   const accounts = await hre.ethers.getSigners();
   const contractOwner = accounts[0];
-  const lendingAddress = "0xED18a7af35A41A9AAee7eccaAfAf60E42536eA69";
+  const lendingAddress = "0xf37E5E5f1641DB2AbEd5c5321DE13CE44d77936A";
   const token1Address = "0x1b38A893b5b46aaca4BbBB65a91F1bf271f0110C";
   const token2Address = "0x881e4Dc39fAD59Ea8361E52115b037D478a6AE09";
   const provider = hre.ethers.provider;
@@ -31,19 +31,19 @@ async function deploy() {
   //   mint2.wait();
   //   console.log("token2 minted");
 
-  //   const transfer1 = await token1["transferEncrypted(address, (bytes))"](
-  //     "0x7682EEa6F0b90CBcA1A3eC2B5C4658cE629A06ca",
-  //     amount1,
-  //   );
-  //   transfer1.wait();
-  //   console.log("token1 transfered");
+  // const transfer1 = await token1["transferEncrypted(address, (bytes))"](
+  //   "0x91Bbb44C0b17C279271D74deBbb13E1743Ac79EC",
+  //   amount1,
+  // );
+  // transfer1.wait();
+  // console.log("token1 transfered");
 
-  //   const transfer2 = await token2["transferEncrypted(address, (bytes))"](
-  //     "0x7682EEa6F0b90CBcA1A3eC2B5C4658cE629A06ca",
-  //     amount2,
-  //   );
-  //   transfer2.wait();
-  //   console.log("token2 transfered");
+  // const transfer2 = await token2["transferEncrypted(address, (bytes))"](
+  //   "0x91Bbb44C0b17C279271D74deBbb13E1743Ac79EC",
+  //   amount2,
+  // );
+  // transfer2.wait();
+  // console.log("token2 transfered");
 
   const approve1 = await token1["approveEncrypted(address,(bytes))"](
     lendingAddress,
