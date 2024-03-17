@@ -11,18 +11,24 @@ import { ethers } from "ethers";
 import { abi } from "../../abi/MockLandingPoolAbi";
 import { generatePermits, lendingPoolAddress, provider } from "../../permits";
 import { Permission } from "fhenixjs";
+import { SuccessDialog } from "./successDialog";
 
 export const UserContext = createContext<{
   permission?: Permission;
   tokenInContract?: ethers.Contract;
   getPermission: () => void;
+  successDialogOpen: boolean;
+  setSuccessDialogOpen: (val: boolean) => void;
 }>({
   getPermission: () => {},
+  successDialogOpen: false,
+  setSuccessDialogOpen: () => {},
 });
 
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [tokenInContract, setTokenInContract] = useState<ethers.Contract>();
   const [permission, setPermission] = useState<Permission>();
+  const [successDialogOpen, setSuccessDialogOpen] = useState<boolean>(false);
   useEffect(() => {
     (async () => {
       const signer = await provider.getSigner();
@@ -42,11 +48,14 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   return (
     <UserContext.Provider
       value={{
+        successDialogOpen,
+        setSuccessDialogOpen,
         tokenInContract,
         getPermission,
         permission,
       }}
     >
+      {successDialogOpen && <SuccessDialog dialogProps={null} />}
       {children}
     </UserContext.Provider>
   );

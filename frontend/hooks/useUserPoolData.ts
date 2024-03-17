@@ -30,6 +30,10 @@ export const useUserPoolData = (token: ProperCoin) => {
         liquidityBalance: liquidityBalance,
         borrowBalance: borrowBalance,
       });
+      console.log({
+        liquidityBalance,
+        borrowBalance,
+      });
     })();
   }, [address, permission, token, tokenInContract]);
   return balance;

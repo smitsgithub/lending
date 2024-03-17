@@ -1,22 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Action, ProperCoin, RestorativeAction } from "../../commonTypes";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  Action,
+  ProperCoin,
+  RestorativeAction,
+  tokens,
+} from "../../commonTypes";
 import { Card } from "./card";
 import { Tabs, TabsList, TabsTrigger } from "./tabs";
 import { CardContent } from "./lendTabContent";
 import { usePathname } from "next/navigation";
+import { BalanceContext } from "./balanceProvider";
+import { UserContext } from "./userContextProvider";
+import { useSupply } from "../../hooks/useSupply";
+import { fhenixClient } from "../../permits";
+import { useToast } from "./use-toast";
+import { Dialog, DialogContent } from "@radix-ui/react-dialog";
+import { EncryptionTypes } from "fhenixjs";
 
 export const SupplyBorrowCard = ({
   defaultAction,
   defaultCoin,
   totalAmount,
   noInfoRows,
+  onDone,
 }: {
   defaultAction?: Action | RestorativeAction;
   defaultCoin?: ProperCoin;
   totalAmount?: string;
   noInfoRows?: boolean;
+  onDone?: () => void;
 }) => {
   const [tab, setTab] = useState<Action | null>(
     defaultAction === "Repay" || defaultAction === "Withdraw"
@@ -24,13 +38,57 @@ export const SupplyBorrowCard = ({
       : defaultAction ?? "Supply",
   );
   const [amount, setAmount] = useState("");
+  const [isInProgress, setIsInProgress] = useState(false);
   const [coin, setCoin] = useState<ProperCoin>(defaultCoin ?? "FHE");
+  const { toast } = useToast();
 
-  const onAmountConfirm = useCallback(() => {
-    if (!amount || !coin) return;
+  const { balance } = useContext(BalanceContext);
+  const { tokenInContract } = useContext(UserContext);
+
+  const onAmountConfirm = useCallback(async () => {
+    if (!amount || !coin || isInProgress) return;
     setAmount("");
-    alert(JSON.stringify({ tab, amount: Number.parseFloat(amount) }));
-  }, [amount, coin, tab]);
+    const action = tab;
+    setIsInProgress(true);
+    switch (action) {
+      case "Supply":
+        try {
+          const encryptedAmount = await fhenixClient.encrypt_uint16(
+            Number.parseFloat(amount),
+          );
+          const result = await tokenInContract?.deposit(
+            tokens[coin].address,
+            encryptedAmount,
+          );
+          onDone?.();
+        } catch (err) {
+          toast({
+            title: "Unexpected Error",
+            description: "Failed to deposit",
+          });
+          console.error({ deposit: err });
+        }
+        setIsInProgress(false);
+        break;
+      case "Borrow":
+        try {
+          const encryptedAmount = await fhenixClient.encrypt(
+            Number.parseFloat(amount),
+            EncryptionTypes.uint16,
+          );
+          const result = await tokenInContract?.borrow(
+            tokens[coin].address,
+            encryptedAmount,
+          );
+          onDone?.();
+        } catch (err) {
+          toast({ title: "Unexpected Error", description: "Failed to borrow" });
+          console.error({ borrow: err });
+        }
+        setIsInProgress(false);
+        break;
+    }
+  }, [amount, coin, isInProgress, onDone, tab, toast, tokenInContract]);
 
   const path = usePathname();
   useEffect(() => {
@@ -47,26 +105,42 @@ export const SupplyBorrowCard = ({
       noInfoRows
         ? []
         : [
+            tab === "Supply"
+              ? {
+                  title: "SUPPLY APY",
+                  value: `${tokens[coin].tempHardcoded.supplyAPY}%`,
+                }
+              : {
+                  title: "BORROW APY",
+                  value: `${tokens[coin].tempHardcoded.borrowAPY}%`,
+                },
+            tab === "Supply"
+              ? {
+                  title: "SUPPLY BALANCE",
+                  value: balance
+                    ? balance[coin].liquidityBalance.toLocaleString() +
+                      ` ${coin}`
+                    : "-",
+                }
+              : {
+                  title: "BORROW BALANCE",
+                  value: balance
+                    ? balance[coin].borrowBalance.toLocaleString() + ` ${coin}`
+                    : "-",
+                },
             {
-              title: tab === "Supply" ? "SUPPLY APY" : "BORROW APY",
-              value: "28%",
-            },
-            {
-              title: tab === "Supply" ? "SUPPLY BALANCE" : "BORROW BALANCE",
-              value: "3 ETH",
-            },
-            {
-              title:
-                tab === "Supply" ? "COLLATERAL FACTOR" : "COLLATERAL FACTOR",
+              title: "COLLATERAL FACTOR",
               value: "70.0%",
             },
           ],
-    [tab, noInfoRows],
+    [noInfoRows, tab, coin, balance],
   );
 
+  let content = null;
   if (tab) {
     return (
-      <Card className="p-6">
+      <Card className="p-6 relative">
+        {isInProgress && <Spinner />}
         <Tabs value={tab} onValueChange={setTab as (action: string) => void}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="Supply">Supply</TabsTrigger>
@@ -86,8 +160,9 @@ export const SupplyBorrowCard = ({
       </Card>
     );
   } else if (defaultAction && defaultCoin) {
-    return (
-      <Card className="p-6">
+    return (content = (
+      <Card className="p-6 relative">
+        {isInProgress && <Spinner />}
         <CardContent
           action={defaultAction}
           amount={amount}
@@ -97,6 +172,19 @@ export const SupplyBorrowCard = ({
           onSubmit={onAmountConfirm}
         />
       </Card>
-    );
+    ));
   }
 };
+
+const Spinner = () => (
+  <div className="inset-0 absolute grid place-items-center bg-black bg-opacity-20">
+    <div
+      className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+      role="status"
+    >
+      <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+        Loading...
+      </span>
+    </div>
+  </div>
+);

@@ -40,9 +40,9 @@ export const YourPositions = ({
         <FunkyFontWrapper className="text-[28px]">
           Your Positions
         </FunkyFontWrapper>
-        <FunkyFontWrapper className="text-xl">
+        {/* <FunkyFontWrapper className="text-xl">
           Net: <Hidable>{netValue}</Hidable>
-        </FunkyFontWrapper>
+        </FunkyFontWrapper> */}
       </div>
       <section className="flex flex-col sm:flex-row gap-6 sm:items-start">
         <div className="p-5 flex flex-col grow ring-1 ring-[#00000014] bg-white">
@@ -68,7 +68,9 @@ export const YourPositions = ({
                 type="Supply"
               />
             ))}
-            {supplyingPositions.length === 0 && "No positions so far"}
+            <Hidable>
+              {supplyingPositions.length === 0 && "No positions so far"}
+            </Hidable>
           </div>
         </div>
         <div className="p-5 flex flex-col grow ring-1 ring-[#00000014] bg-white">
@@ -94,7 +96,9 @@ export const YourPositions = ({
                 type="Borrow"
               />
             ))}
-            {borrowingPositions.length === 0 && "No positions so far"}
+            <Hidable>
+              {borrowingPositions.length === 0 && "No positions so far"}
+            </Hidable>
           </div>
         </div>
       </section>
