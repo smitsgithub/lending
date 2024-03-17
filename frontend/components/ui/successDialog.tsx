@@ -10,6 +10,7 @@ import { useContext, useMemo } from "react";
 import { BalanceContext } from "./balanceProvider";
 import { MiniTable } from "./miniTable";
 import { Button } from "./button";
+import SizedConfetti from "react-confetti";
 const srcByAction = {
   Supply: NounSupplied,
   Borrow: NounBorrowed,
@@ -71,6 +72,11 @@ export const SuccessDialog = ({
   );
   return (
     <Dialog open onOpenChange={onOpenChange}>
+      <SizedConfetti
+        style={{ pointerEvents: "none", zIndex: 1000 }}
+        numberOfPieces={750}
+        recycle={false}
+      />
       <DialogContent
         lightOverlay
         className="max-w-[704px] w-full flex flex-col gap-6 items-center"
