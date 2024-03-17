@@ -15,12 +15,10 @@ import { Hidable } from "./hidable";
 export const YourPositions = ({
   supplying,
   borrowing,
-  netValue,
   onAction,
 }: {
   supplying: { positions: Position[] };
   borrowing: { positions: Position[] };
-  netValue: number;
   onAction: (
     action: Action | RestorativeAction,
     position: Token,

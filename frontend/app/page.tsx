@@ -70,7 +70,6 @@ export default function Home() {
             ]}
           />
           <YourPositions
-            netValue={1000}
             onAction={handleAction}
             supplying={{
               positions: [

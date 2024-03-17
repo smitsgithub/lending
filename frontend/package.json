@@ -47,5 +47,9 @@
     "typescript": "5.2.2",
     "vercel": "^33.5.3",
     "viem": "^1.21.4"
+  },
+  "devDependencies": {
+    "encoding": "^0.1.13",
+    "pino-pretty": "^10.3.1"
   }
 }
