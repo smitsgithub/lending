@@ -1,4 +1,4 @@
-import { ProperCoin } from "../../commonTypes";
+import { Token } from "../../commonTypes";
 import { FunkyFontWrapper } from "./funkyFontWrapper";
 import { Icon } from "./icons";
 
@@ -7,7 +7,7 @@ export const FirstColumn = ({
   name,
   data,
 }: {
-  coin: ProperCoin;
+  coin: Token;
   name: string;
   data: {
     label: string;

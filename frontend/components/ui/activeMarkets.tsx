@@ -1,13 +1,13 @@
 "use client";
 import { FC } from "react";
-import { Action, ProperCoin, Market } from "../../commonTypes";
+import { Action, Token, Market } from "../../commonTypes";
 import { FunkyFontWrapper } from "./funkyFontWrapper";
 import { MarketTableRow } from "./marketTableRow";
 
 export const ActiveMarkets: FC<{
   markets: Market[];
   title?: string;
-  onAction: (action: Action, coin: ProperCoin) => void;
+  onAction: (action: Action, coin: Token) => void;
 }> = ({ markets, title, onAction }) => {
   return (
     <section className="flex flex-col gap-4">

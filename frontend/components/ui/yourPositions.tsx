@@ -1,10 +1,5 @@
 import { FunkyFontWrapper } from "./funkyFontWrapper";
-import {
-  Action,
-  Position,
-  ProperCoin,
-  RestorativeAction,
-} from "../../commonTypes";
+import { Action, Position, Token, RestorativeAction } from "../../commonTypes";
 import { FirstColumn } from "./firstColumn";
 import { useContext, useMemo } from "react";
 import {
@@ -28,7 +23,7 @@ export const YourPositions = ({
   netValue: number;
   onAction: (
     action: Action | RestorativeAction,
-    position: ProperCoin,
+    position: Token,
     amount?: string,
   ) => void;
 }) => {
@@ -115,7 +110,7 @@ export const PositionCard = ({
   type: Action;
   onAction: (
     action: Action | RestorativeAction,
-    position: ProperCoin,
+    position: Token,
     amount?: string,
   ) => void;
 }) => {

@@ -4,7 +4,7 @@ import { CoinSelect } from "./coinSelect";
 import { FunkyFontWrapper } from "./funkyFontWrapper";
 import { Input } from "./input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
-import { Action, ProperCoin, RestorativeAction } from "../../commonTypes";
+import { Action, Token, RestorativeAction } from "../../commonTypes";
 import { MiniTable } from "./miniTable";
 
 const isRestorativeAction = (
@@ -31,8 +31,8 @@ export const CardContent = ({
   amount: string;
   totalAmount?: string;
   onAmountChange: (val: string) => void;
-  coin: ProperCoin;
-  onCoinChange?: (val: ProperCoin) => void;
+  coin: Token;
+  onCoinChange?: (val: Token) => void;
   onSubmit: () => void;
   infoRows?: { title: string; value: string }[];
   action: Action | RestorativeAction;

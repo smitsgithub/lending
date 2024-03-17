@@ -5,7 +5,7 @@ import { ActiveMarkets } from "../components/ui/activeMarkets";
 import { YourPositions } from "../components/ui/yourPositions";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { CardDialog } from "../components/ui/cardDialog";
-import { Action, ProperCoin, RestorativeAction, tokens } from "../commonTypes";
+import { Action, Token, RestorativeAction, tokens } from "../commonTypes";
 import { ConnectionRequired } from "../components/ui/connectionRequired";
 import { useUserPoolData } from "../hooks/useUserPoolData";
 import { BalanceContext } from "../components/ui/balanceProvider";
@@ -21,12 +21,12 @@ export default function Home() {
   }, []);
   const [dialogProps, setDialogProps] = useState<{
     action: Action | RestorativeAction;
-    coin: ProperCoin;
+    coin: Token;
     amount?: string;
   } | null>(null);
 
   const handleAction = useCallback(
-    (action: Action | RestorativeAction, coin: ProperCoin, amount?: string) => {
+    (action: Action | RestorativeAction, coin: Token, amount?: string) => {
       console.log({ action, coin });
       setDialogProps({ action, coin, amount });
     },

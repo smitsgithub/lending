@@ -23,18 +23,18 @@ export const tokens = {
   },
 } as const;
 
-export type ProperCoin = keyof typeof tokens;
+export type Token = keyof typeof tokens;
 
 export type Market = {
   name: string;
   poolUtilization: number;
   supplyAPY: number;
   borrowAPY: number;
-  coin: ProperCoin;
+  coin: Token;
 };
 
 export type Position = {
-  coin: ProperCoin;
+  coin: Token;
   name: string;
   amount: bigint;
   apy: number;

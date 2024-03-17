@@ -1,27 +1,45 @@
 "use client";
 
-import { ReactNode, createContext, useContext, useEffect } from "react";
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import { ProperCoin, UserBalance } from "../../commonTypes";
+import { Token, UserBalance } from "../../commonTypes";
 import { useUserPoolData } from "../../hooks/useUserPoolData";
 
 export const BalanceContext = createContext<{
-  balance: Record<ProperCoin, UserBalance> | undefined;
+  balance: Record<Token, UserBalance> | undefined;
+  reRequestBalance: () => void;
 }>({
   balance: undefined,
+  reRequestBalance: () => {},
 });
 
 export const BalanceProvider = ({ children }: { children: ReactNode }) => {
-  const fheBalance = useUserPoolData("FHE");
-  const usdfBalance = useUserPoolData("USDF");
+  const [key, setKey] = useState(1);
+  const fheBalance = useUserPoolData("FHE", key);
+  const usdfBalance = useUserPoolData("USDF", key);
   const balanceReady = fheBalance && usdfBalance;
+  const reRequestBalance = useCallback(() => setKey((key) => key + 1), []);
+  const balance = useMemo(() => {
+    return (
+      balanceReady && {
+        FHE: fheBalance,
+        USDF: usdfBalance,
+      }
+    );
+  }, [balanceReady, fheBalance, usdfBalance]);
   return (
     <BalanceContext.Provider
       value={{
-        balance: balanceReady && {
-          FHE: fheBalance,
-          USDF: usdfBalance,
-        },
+        balance,
+        reRequestBalance,
       }}
     >
       {children}

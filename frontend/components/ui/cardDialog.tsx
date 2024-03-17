@@ -1,13 +1,13 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { SupplyBorrowCard } from "./supplyBorrowCard";
-import { Action, ProperCoin, RestorativeAction } from "../../commonTypes";
+import { Action, Token, RestorativeAction } from "../../commonTypes";
 export const CardDialog = ({
   dialogProps,
   onOpenChange,
 }: {
   dialogProps: {
     action: Action | RestorativeAction;
-    coin: ProperCoin;
+    coin: Token;
     amount?: string;
   } | null;
   onOpenChange?(open: boolean): void;

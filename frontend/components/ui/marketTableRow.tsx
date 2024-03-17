@@ -1,5 +1,5 @@
 import { MouseEventHandler, useCallback } from "react";
-import { Action, ProperCoin, Market } from "../../commonTypes";
+import { Action, Token, Market } from "../../commonTypes";
 import { Button } from "./button";
 import { FirstColumn } from "./firstColumn";
 import { VerticalDivider } from "./verticalDivider";
@@ -13,7 +13,7 @@ export const MarketTableRow = ({
   borrowAPY,
   onAction,
 }: Market & {
-  onAction: (action: Action, coin: ProperCoin) => void;
+  onAction: (action: Action, coin: Token) => void;
 }) => {
   const onSupplyCb: MouseEventHandler<HTMLButtonElement> = useCallback(
     (e) => {

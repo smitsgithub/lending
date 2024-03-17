@@ -3,12 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ActiveMarkets } from "../../../components/ui/activeMarkets";
-import {
-  Action,
-  ProperCoin,
-  RestorativeAction,
-  tokens,
-} from "../../../commonTypes";
+import { Action, Token, RestorativeAction, tokens } from "../../../commonTypes";
 import { CardDialog } from "../../../components/ui/cardDialog";
 import { Icon } from "../../../components/ui/icons/index";
 import { FunkyFontWrapper } from "../../../components/ui/funkyFontWrapper";
@@ -32,12 +27,12 @@ export default function MarketPage() {
 
   const [dialogProps, setDialogProps] = useState<{
     action: Action | RestorativeAction;
-    coin: ProperCoin;
+    coin: Token;
     amount?: string;
   } | null>(null);
 
   const handleAction = useCallback(
-    (action: Action | RestorativeAction, coin: ProperCoin, amount?: string) => {
+    (action: Action | RestorativeAction, coin: Token, amount?: string) => {
       setDialogProps({ action, coin });
     },
     [],
@@ -48,7 +43,7 @@ export default function MarketPage() {
     }
   }, []);
 
-  const IconComponent = Icon[coin as ProperCoin] ?? null;
+  const IconComponent = Icon[coin as Token] ?? null;
 
   return (
     <ConnectionRequired>
@@ -61,7 +56,7 @@ export default function MarketPage() {
           <div className="flex flex-row gap-5">
             <IconComponent width={95} height={95} />
             <FunkyFontWrapper className="text-3xl pt-2">
-              {tokens[coin as ProperCoin].name}
+              {tokens[coin as Token].name}
             </FunkyFontWrapper>
           </div>
           <div className="flex flex-grow justify-end text-end gap-10 ">
@@ -134,7 +129,7 @@ export default function MarketPage() {
               width="100%"
             />
           </div>
-          <SupplyBorrowCard noInfoRows defaultCoin={coin as ProperCoin} />
+          <SupplyBorrowCard noInfoRows defaultCoin={coin as Token} />
         </section>
         <section className="flex flex-col mt-9 mb-14 w-full gap-14">
           <ActiveMarkets

@@ -1,22 +1,15 @@
 "use client";
 
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import {
-  Action,
-  ProperCoin,
-  RestorativeAction,
-  tokens,
-} from "../../commonTypes";
+import { Action, Token, RestorativeAction, tokens } from "../../commonTypes";
 import { Card } from "./card";
 import { Tabs, TabsList, TabsTrigger } from "./tabs";
 import { CardContent } from "./lendTabContent";
 import { usePathname } from "next/navigation";
 import { BalanceContext } from "./balanceProvider";
 import { UserContext } from "./userContextProvider";
-import { useSupply } from "../../hooks/useSupply";
 import { fhenixClient } from "../../permits";
 import { useToast } from "./use-toast";
-import { Dialog, DialogContent } from "@radix-ui/react-dialog";
 import { EncryptionTypes } from "fhenixjs";
 
 export const SupplyBorrowCard = ({
@@ -27,10 +20,10 @@ export const SupplyBorrowCard = ({
   onDone,
 }: {
   defaultAction?: Action | RestorativeAction;
-  defaultCoin?: ProperCoin;
+  defaultCoin?: Token;
   totalAmount?: string;
   noInfoRows?: boolean;
-  onDone?: () => void;
+  onDone?: (operation: { coin: Token; amount: number; action: Action }) => void;
 }) => {
   const [tab, setTab] = useState<Action | null>(
     defaultAction === "Repay" || defaultAction === "Withdraw"
@@ -39,28 +32,35 @@ export const SupplyBorrowCard = ({
   );
   const [amount, setAmount] = useState("");
   const [isInProgress, setIsInProgress] = useState(false);
-  const [coin, setCoin] = useState<ProperCoin>(defaultCoin ?? "FHE");
+  const [coin, setCoin] = useState<Token>(defaultCoin ?? "FHE");
   const { toast } = useToast();
 
-  const { balance } = useContext(BalanceContext);
+  const { balance, reRequestBalance } = useContext(BalanceContext);
   const { tokenInContract } = useContext(UserContext);
 
   const onAmountConfirm = useCallback(async () => {
     if (!amount || !coin || isInProgress) return;
-    setAmount("");
     const action = tab;
+    const amountNum = Number.parseFloat(amount);
+    setAmount("");
     setIsInProgress(true);
     switch (action) {
       case "Supply":
         try {
-          const encryptedAmount = await fhenixClient.encrypt_uint16(
+          const encryptedAmount = await fhenixClient.encrypt(
             Number.parseFloat(amount),
+            EncryptionTypes.uint16,
           );
           const result = await tokenInContract?.deposit(
             tokens[coin].address,
             encryptedAmount,
           );
-          onDone?.();
+          reRequestBalance();
+          onDone?.({
+            coin,
+            amount: amountNum,
+            action: "Supply",
+          });
         } catch (err) {
           toast({
             title: "Unexpected Error",
@@ -80,7 +80,12 @@ export const SupplyBorrowCard = ({
             tokens[coin].address,
             encryptedAmount,
           );
-          onDone?.();
+          reRequestBalance();
+          onDone?.({
+            coin,
+            amount: amountNum,
+            action: "Borrow",
+          });
         } catch (err) {
           toast({ title: "Unexpected Error", description: "Failed to borrow" });
           console.error({ borrow: err });

@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import NounBorrowed from "./NounBorrowed.gif";
 import NounSupplied from "./NounSupplied.gif";
-import { Action, ProperCoin, RestorativeAction } from "../../commonTypes";
+import { Action, Token, RestorativeAction } from "../../commonTypes";
 const srcByAction = {
   Supply: NounSupplied,
   Borrow: NounBorrowed,
@@ -15,7 +15,7 @@ export const SuccessDialog = ({
 }: {
   dialogProps: {
     action: Action | RestorativeAction;
-    coin: ProperCoin;
+    coin: Token;
     amount: string;
   } | null;
   onOpenChange?(open: boolean): void;

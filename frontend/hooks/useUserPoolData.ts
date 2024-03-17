@@ -1,10 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../components/ui/userContextProvider";
-import { ProperCoin, UserBalance, tokens } from "../commonTypes";
+import { Token, UserBalance, tokens } from "../commonTypes";
 import { useAccount } from "wagmi";
 import { fhenixClient, lendingPoolAddress } from "../permits";
 
-export const useUserPoolData = (token: ProperCoin) => {
+export const useUserPoolData = (token: Token, key: number) => {
   const { address } = useAccount();
   const { tokenInContract, permission } = useContext(UserContext);
   const [balance, setBalance] = useState<UserBalance | undefined>();
@@ -35,6 +35,6 @@ export const useUserPoolData = (token: ProperCoin) => {
         borrowBalance,
       });
     })();
-  }, [address, permission, token, tokenInContract]);
+  }, [address, permission, token, tokenInContract, key]);
   return balance;
 };
