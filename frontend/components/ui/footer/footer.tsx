@@ -18,7 +18,7 @@ export const Footer = () => {
           <a onClick={scrollToTop} href="/#borrow">
             Borrow
           </a>
-          <Link onClick={scrollToTop} href="/nft">
+          <Link onClick={scrollToTop} href="/#">
             NFTs
           </Link>
         </nav>

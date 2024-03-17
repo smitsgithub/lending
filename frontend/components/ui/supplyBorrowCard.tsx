@@ -111,15 +111,19 @@ export const SupplyBorrowCard = ({
     tokenInContract,
   ]);
 
-  const path = usePathname();
   useEffect(() => {
-    const afterHash = path.split("#")[1]?.toLocaleLowerCase();
-    if (afterHash === "supply") {
-      setTab("Supply");
-    } else if (afterHash === "borrow") {
-      setTab("Borrow");
-    }
-  }, [path]);
+    const fn = () => {
+      console.log("hashchange", location.hash);
+      if (location.hash === "#supply") {
+        setTab("Supply");
+      } else if (location.hash === "#borrow") {
+        setTab("Borrow");
+      }
+    };
+    global.window?.addEventListener("hashchange", fn);
+
+    return () => global.window?.removeEventListener("hashchange", fn);
+  }, []);
 
   const infoRows = useMemo(
     () =>
