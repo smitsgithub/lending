@@ -1,22 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Action, ProperCoin, RestorativeAction } from "../../commonTypes";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  Action,
+  ProperCoin,
+  RestorativeAction,
+  tokens,
+} from "../../commonTypes";
 import { Card } from "./card";
 import { Tabs, TabsList, TabsTrigger } from "./tabs";
 import { CardContent } from "./lendTabContent";
 import { usePathname } from "next/navigation";
+import { BalanceContext } from "./balanceProvider";
+import { UserContext } from "./userContextProvider";
 
 export const SupplyBorrowCard = ({
   defaultAction,
   defaultCoin,
   totalAmount,
   noInfoRows,
+  onDone,
 }: {
   defaultAction?: Action | RestorativeAction;
   defaultCoin?: ProperCoin;
   totalAmount?: string;
   noInfoRows?: boolean;
+  onDone?: () => void;
 }) => {
   const [tab, setTab] = useState<Action | null>(
     defaultAction === "Repay" || defaultAction === "Withdraw"
@@ -26,11 +35,17 @@ export const SupplyBorrowCard = ({
   const [amount, setAmount] = useState("");
   const [coin, setCoin] = useState<ProperCoin>(defaultCoin ?? "FHE");
 
+  const { balance } = useContext(BalanceContext);
+  const {} = useContext(UserContext);
+
   const onAmountConfirm = useCallback(() => {
     if (!amount || !coin) return;
     setAmount("");
-    alert(JSON.stringify({ tab, amount: Number.parseFloat(amount) }));
-  }, [amount, coin, tab]);
+    const action = tab;
+    const numAmount = Number.parseFloat(amount);
+    console.log({ action, numAmount, coin });
+    onDone?.();
+  }, [amount, coin, onDone, tab]);
 
   const path = usePathname();
   useEffect(() => {
@@ -47,25 +62,40 @@ export const SupplyBorrowCard = ({
       noInfoRows
         ? []
         : [
+            tab === "Supply"
+              ? {
+                  title: "SUPPLY APY",
+                  value: `${tokens[coin].tempHardcoded.supplyAPY}%`,
+                }
+              : {
+                  title: "BORROW APY",
+                  value: `${tokens[coin].tempHardcoded.borrowAPY}%`,
+                },
+            tab === "Supply"
+              ? {
+                  title: "SUPPLY BALANCE",
+                  value: balance
+                    ? balance[coin].liquidityBalance.toLocaleString() +
+                      ` ${coin}`
+                    : "-",
+                }
+              : {
+                  title: "BORROW BALANCE",
+                  value: balance
+                    ? balance[coin].borrowBalance.toLocaleString() + ` ${coin}`
+                    : "-",
+                },
             {
-              title: tab === "Supply" ? "SUPPLY APY" : "BORROW APY",
-              value: "28%",
-            },
-            {
-              title: tab === "Supply" ? "SUPPLY BALANCE" : "BORROW BALANCE",
-              value: "3 ETH",
-            },
-            {
-              title:
-                tab === "Supply" ? "COLLATERAL FACTOR" : "COLLATERAL FACTOR",
+              title: "COLLATERAL FACTOR",
               value: "70.0%",
             },
           ],
-    [tab, noInfoRows],
+    [noInfoRows, tab, coin, balance],
   );
 
+  let content = null;
   if (tab) {
-    return (
+    content = (
       <Card className="p-6">
         <Tabs value={tab} onValueChange={setTab as (action: string) => void}>
           <TabsList className="grid w-full grid-cols-2">
@@ -86,7 +116,7 @@ export const SupplyBorrowCard = ({
       </Card>
     );
   } else if (defaultAction && defaultCoin) {
-    return (
+    return (content = (
       <Card className="p-6">
         <CardContent
           action={defaultAction}
@@ -97,6 +127,8 @@ export const SupplyBorrowCard = ({
           onSubmit={onAmountConfirm}
         />
       </Card>
-    );
+    ));
   }
+
+  return <>{content}</>;
 };

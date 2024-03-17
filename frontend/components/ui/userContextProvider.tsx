@@ -16,13 +16,18 @@ export const UserContext = createContext<{
   permission?: Permission;
   tokenInContract?: ethers.Contract;
   getPermission: () => void;
+  successDialogOpen: boolean;
+  setSuccessDialogOpen: (val: boolean) => void;
 }>({
   getPermission: () => {},
+  successDialogOpen: false,
+  setSuccessDialogOpen: () => {},
 });
 
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [tokenInContract, setTokenInContract] = useState<ethers.Contract>();
   const [permission, setPermission] = useState<Permission>();
+  const [successDialogOpen, setSuccessDialogOpen] = useState<boolean>(false);
   useEffect(() => {
     (async () => {
       const signer = await provider.getSigner();
@@ -42,6 +47,8 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   return (
     <UserContext.Provider
       value={{
+        successDialogOpen,
+        setSuccessDialogOpen,
         tokenInContract,
         getPermission,
         permission,
