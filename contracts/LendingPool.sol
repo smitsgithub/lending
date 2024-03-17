@@ -421,7 +421,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard, 
   }
 
     function getUserPoolDataSealOutput(address _user, FHERC20 _token, Permission memory auth) onlyPermitted(auth, _user)
-    internal
+    external
     view
     returns (
       bytes memory compoundedLiquidityBalance,

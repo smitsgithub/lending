@@ -23,7 +23,7 @@ async function LendingCall() {
   //   USDFHENIX, USDF deployed to: 0x881e4Dc39fAD59Ea8361E52115b037D478a6AE09
 
   const lendingDeployerContractAddress =
-    "0xD3eb78b45Ac9d3e816D90cb294C3Ab526eb71609";
+    "0xED18a7af35A41A9AAee7eccaAfAf60E42536eA69";
   const FHEAddress = "0x1b38A893b5b46aaca4BbBB65a91F1bf271f0110C";
   const USDFAddress = "0x881e4Dc39fAD59Ea8361E52115b037D478a6AE09";
   const ConfigContract = "0x0Bb5C78F9367D6c188D6b1C139216F23B44C3C7B";
@@ -42,15 +42,15 @@ async function LendingCall() {
   await initPoolFHE.wait();
   console.log("FHE Pool initialized");
 
-  //   const initPoolUSDF = await lendingContract.initPool(
-  //     USDFAddress,
-  //     ConfigContract,
-  //     {
-  //       from: contractOwner,
-  //     },
-  //   );
-  //   await initPoolUSDF.wait();
-  //   console.log("USDF Pool initialized");
+  const initPoolUSDF = await lendingContract.initPool(
+    USDFAddress,
+    ConfigContract,
+    {
+      from: contractOwner,
+    },
+  );
+  await initPoolUSDF.wait();
+  console.log("USDF Pool initialized");
 
   //   const amount1 = await instance.encrypt_uint16(1000);
 }
