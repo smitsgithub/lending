@@ -1,10 +1,11 @@
 import { FC, PropsWithChildren, useContext, useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { UserContext } from "./userContextProvider";
+import { BalanceContext } from "./balanceProvider";
 
 export const Hidable: FC<PropsWithChildren> = ({ children }) => {
-  const { hideData } = useContext(UserContext);
-  if (!hideData) {
+  const { balance } = useContext(BalanceContext);
+  if (balance) {
     return children;
   }
   return (

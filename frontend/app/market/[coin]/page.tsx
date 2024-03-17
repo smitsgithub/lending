@@ -3,19 +3,18 @@
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ActiveMarkets } from "../../../components/ui/activeMarkets";
-import { Action, Coin, RestorativeAction } from "../../../commonTypes";
+import {
+  Action,
+  ProperCoin,
+  RestorativeAction,
+  tokens,
+} from "../../../commonTypes";
 import { CardDialog } from "../../../components/ui/cardDialog";
 import { Icon } from "../../../components/ui/icons/index";
 import { FunkyFontWrapper } from "../../../components/ui/funkyFontWrapper";
 import { SupplyBorrowCard } from "../../../components/ui/supplyBorrowCard";
 import Chart from "react-apexcharts";
 import { ConnectionRequired } from "../../../components/ui/connectionRequired";
-
-const coinData: Record<Coin, { name: string }> = {
-  FTX: { name: "FTX" },
-  ETH: { name: "Ethereum" },
-  AVAX: { name: "Avalanche" },
-};
 
 global.document?.documentElement.style.setProperty("--gradient-step", "220px");
 
@@ -33,12 +32,12 @@ export default function MarketPage() {
 
   const [dialogProps, setDialogProps] = useState<{
     action: Action | RestorativeAction;
-    coin: Coin;
-    amount?: number;
+    coin: ProperCoin;
+    amount?: string;
   } | null>(null);
 
   const handleAction = useCallback(
-    (action: Action | RestorativeAction, coin: Coin, amount?: number) => {
+    (action: Action | RestorativeAction, coin: ProperCoin, amount?: string) => {
       setDialogProps({ action, coin });
     },
     [],
@@ -49,7 +48,7 @@ export default function MarketPage() {
     }
   }, []);
 
-  const IconComponent = Icon[coin as Coin] ?? null;
+  const IconComponent = Icon[coin as ProperCoin] ?? null;
 
   return (
     <ConnectionRequired>
@@ -62,7 +61,7 @@ export default function MarketPage() {
           <div className="flex flex-row gap-5">
             <IconComponent width={95} height={95} />
             <FunkyFontWrapper className="text-3xl pt-2">
-              {coinData[coin as Coin].name}
+              {tokens[coin as ProperCoin].name}
             </FunkyFontWrapper>
           </div>
           <div className="flex flex-grow justify-end text-end gap-10 ">
@@ -135,7 +134,7 @@ export default function MarketPage() {
               width="100%"
             />
           </div>
-          <SupplyBorrowCard noInfoRows defaultCoin={coin as Coin} />
+          <SupplyBorrowCard noInfoRows defaultCoin={coin as ProperCoin} />
         </section>
         <section className="flex flex-col mt-9 mb-14 w-full gap-14">
           <ActiveMarkets
@@ -143,18 +142,18 @@ export default function MarketPage() {
             title="More Markets"
             markets={[
               {
-                coin: "ETH",
-                name: "Ethereum",
-                poolUtilization: 97,
-                supplyAPY: 28.5,
-                borrowAPY: 18.5,
+                coin: "FHE",
+                name: tokens.FHE.name,
+                poolUtilization: tokens.FHE.tempHardcoded.poolUtilization,
+                supplyAPY: tokens.FHE.tempHardcoded.supplyAPY,
+                borrowAPY: tokens.FHE.tempHardcoded.borrowAPY,
               },
               {
-                coin: "AVAX",
-                name: "Avalanche",
-                poolUtilization: 97,
-                supplyAPY: 13.4,
-                borrowAPY: 18.5,
+                coin: "USDF",
+                name: tokens.USDF.name,
+                poolUtilization: tokens.USDF.tempHardcoded.poolUtilization,
+                supplyAPY: tokens.USDF.tempHardcoded.supplyAPY,
+                borrowAPY: tokens.USDF.tempHardcoded.borrowAPY,
               },
             ]}
           />

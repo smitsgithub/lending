@@ -1,23 +1,50 @@
 "use client";
 
-import { ReactNode, createContext, useState } from "react";
-import { Header } from "./header";
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { ethers } from "ethers";
+import { abi } from "../../abi/MockLandingPoolAbi";
+import { generatePermits, lendingPoolAddress, provider } from "../../permits";
+import { Permission } from "fhenixjs";
 
 export const UserContext = createContext<{
-  hideData: boolean;
-  debugToggleHideData: () => void;
+  permission?: Permission;
+  tokenInContract?: ethers.Contract;
+  getPermission: () => void;
 }>({
-  hideData: true,
-  debugToggleHideData: () => {},
+  getPermission: () => {},
 });
 
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
-  const [hideData, setHideData] = useState(true);
+  const [tokenInContract, setTokenInContract] = useState<ethers.Contract>();
+  const [permission, setPermission] = useState<Permission>();
+  useEffect(() => {
+    (async () => {
+      const signer = await provider.getSigner();
+      const tokenInContract = new ethers.Contract(
+        lendingPoolAddress,
+        abi,
+        signer,
+      );
+      setTokenInContract(tokenInContract);
+    })();
+  }, []);
+
+  const getPermission = useCallback(async () => {
+    const permission = await generatePermits(lendingPoolAddress, provider);
+    setPermission(permission);
+  }, []);
   return (
     <UserContext.Provider
       value={{
-        hideData,
-        debugToggleHideData: () => setHideData((val) => !val),
+        tokenInContract,
+        getPermission,
+        permission,
       }}
     >
       {children}

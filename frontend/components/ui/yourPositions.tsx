@@ -1,7 +1,12 @@
 import { FunkyFontWrapper } from "./funkyFontWrapper";
-import { Action, Coin, Position, RestorativeAction } from "../../commonTypes";
+import {
+  Action,
+  Position,
+  ProperCoin,
+  RestorativeAction,
+} from "../../commonTypes";
 import { FirstColumn } from "./firstColumn";
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -18,15 +23,17 @@ export const YourPositions = ({
   netValue,
   onAction,
 }: {
-  supplying: { positions: Position[]; total: number };
-  borrowing: { positions: Position[]; total: number };
+  supplying: { positions: Position[] };
+  borrowing: { positions: Position[] };
   netValue: number;
   onAction: (
     action: Action | RestorativeAction,
-    position: Coin,
-    amount?: number,
+    position: ProperCoin,
+    amount?: string,
   ) => void;
 }) => {
+  const supplyingPositions = supplying.positions.filter((p) => p.amount > 0n);
+  const borrowingPositions = borrowing.positions.filter((p) => p.amount > 0n);
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-row justify-between">
@@ -43,17 +50,17 @@ export const YourPositions = ({
             <FunkyFontWrapper className="text-xl mb-3">
               Supplying
             </FunkyFontWrapper>
-            <div className="flex flex-row gap-1 items-center">
+            {/* <div className="flex flex-row gap-1 items-center"> // FIXME:
               <span className="text-xs opacity-40">Total Supply</span>
               <Hidable>
                 <span className="text-sm text-slate-600">
                   ${supplying.total}
                 </span>
               </Hidable>
-            </div>
+            </div> */}
           </div>
           <div className="flex flex-col gap-2">
-            {supplying.positions.map((position) => (
+            {supplyingPositions.map((position) => (
               <PositionCard
                 onAction={onAction}
                 key={position.coin}
@@ -61,6 +68,7 @@ export const YourPositions = ({
                 type="Supply"
               />
             ))}
+            {supplyingPositions.length === 0 && "No positions so far"}
           </div>
         </div>
         <div className="p-5 flex flex-col grow ring-1 ring-[#00000014] bg-white">
@@ -68,17 +76,17 @@ export const YourPositions = ({
             <FunkyFontWrapper className="text-xl mb-3">
               Borrowing
             </FunkyFontWrapper>
-            <div className="flex flex-row gap-1 items-center">
+            {/* <div className="flex flex-row gap-1 items-center"> // FIXME:
               <span className="text-xs opacity-40">Total Borrow</span>
               <Hidable>
                 <span className="text-sm text-slate-600">
                   ${supplying.total}
                 </span>
               </Hidable>
-            </div>
+            </div> */}
           </div>
           <div className="flex flex-col gap-2">
-            {borrowing.positions.map((position) => (
+            {borrowingPositions.map((position) => (
               <PositionCard
                 onAction={onAction}
                 key={position.coin}
@@ -86,6 +94,7 @@ export const YourPositions = ({
                 type="Borrow"
               />
             ))}
+            {borrowingPositions.length === 0 && "No positions so far"}
           </div>
         </div>
       </section>
@@ -102,8 +111,8 @@ export const PositionCard = ({
   type: Action;
   onAction: (
     action: Action | RestorativeAction,
-    position: Coin,
-    amount?: number,
+    position: ProperCoin,
+    amount?: string,
   ) => void;
 }) => {
   const data = useMemo(
@@ -130,7 +139,7 @@ export const PositionCard = ({
               </div>
               <div className="text-sm font-semibold">
                 <Hidable>
-                  {position.amount} {position.coin}
+                  {position.amount.toLocaleString()} {position.coin}
                 </Hidable>
               </div>
             </div>
@@ -154,7 +163,7 @@ export const PositionCard = ({
                   onAction(
                     type === "Borrow" ? "Repay" : "Withdraw",
                     position.coin,
-                    position.amount,
+                    position.amount.toLocaleString(),
                   )
                 }
               >

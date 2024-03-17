@@ -3,13 +3,16 @@ import { SupplyBorrowCard } from "../components/ui/supplyBorrowCard";
 import { AccountInfo } from "../components/ui/accountInfo";
 import { ActiveMarkets } from "../components/ui/activeMarkets";
 import { YourPositions } from "../components/ui/yourPositions";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { CardDialog } from "../components/ui/cardDialog";
-import { Action, Coin, RestorativeAction } from "../commonTypes";
+import { Action, ProperCoin, RestorativeAction, tokens } from "../commonTypes";
 import { ConnectionRequired } from "../components/ui/connectionRequired";
+import { useUserPoolData } from "../hooks/useUserPoolData";
+import { BalanceContext } from "../components/ui/balanceProvider";
 
 global.document?.documentElement.style.setProperty("--gradient-step", "580px");
 export default function Home() {
+  useUserPoolData("FHE");
   useEffect(() => {
     global.document?.documentElement.style.setProperty(
       "--gradient-step",
@@ -18,12 +21,12 @@ export default function Home() {
   }, []);
   const [dialogProps, setDialogProps] = useState<{
     action: Action | RestorativeAction;
-    coin: Coin;
-    amount?: number;
+    coin: ProperCoin;
+    amount?: string;
   } | null>(null);
 
   const handleAction = useCallback(
-    (action: Action | RestorativeAction, coin: Coin, amount?: number) => {
+    (action: Action | RestorativeAction, coin: ProperCoin, amount?: string) => {
       console.log({ action, coin });
       setDialogProps({ action, coin, amount });
     },
@@ -34,6 +37,8 @@ export default function Home() {
       setDialogProps(null);
     }
   }, []);
+
+  const { balance } = useContext(BalanceContext);
 
   return (
     <ConnectionRequired>
@@ -51,18 +56,18 @@ export default function Home() {
             onAction={handleAction}
             markets={[
               {
-                coin: "ETH",
-                name: "Ethereum",
-                poolUtilization: 97,
-                supplyAPY: 28.5,
-                borrowAPY: 18.5,
+                coin: "FHE",
+                name: tokens.FHE.name,
+                poolUtilization: tokens.FHE.tempHardcoded.poolUtilization,
+                supplyAPY: tokens.FHE.tempHardcoded.supplyAPY,
+                borrowAPY: tokens.FHE.tempHardcoded.borrowAPY,
               },
               {
-                coin: "AVAX",
-                name: "Avalanche",
-                poolUtilization: 97,
-                supplyAPY: 13.4,
-                borrowAPY: 18.5,
+                coin: "USDF",
+                name: tokens.USDF.name,
+                poolUtilization: tokens.USDF.tempHardcoded.poolUtilization,
+                supplyAPY: tokens.USDF.tempHardcoded.supplyAPY,
+                borrowAPY: tokens.USDF.tempHardcoded.borrowAPY,
               },
             ]}
           />
@@ -70,30 +75,34 @@ export default function Home() {
             netValue={1000}
             onAction={handleAction}
             supplying={{
-              total: 1000,
               positions: [
                 {
-                  coin: "ETH",
-                  name: "Ethereum",
-                  amount: 1,
-                  apy: 28.04,
+                  coin: "FHE",
+                  name: tokens.FHE.name,
+                  amount: balance?.FHE.liquidityBalance ?? 0n,
+                  apy: tokens.FHE.tempHardcoded.supplyAPY,
                 },
                 {
-                  coin: "AVAX",
-                  name: "Avalanche",
-                  amount: 450,
-                  apy: 13.04,
+                  coin: "USDF",
+                  name: tokens.USDF.name,
+                  amount: balance?.USDF.liquidityBalance ?? 0n,
+                  apy: tokens.USDF.tempHardcoded.supplyAPY,
                 },
               ],
             }}
             borrowing={{
-              total: 1000,
               positions: [
                 {
-                  coin: "FTX",
-                  name: "FTX",
-                  amount: 2553,
-                  apy: 13.04,
+                  coin: "FHE",
+                  name: tokens.FHE.name,
+                  amount: balance?.FHE.borrowBalance ?? 0n,
+                  apy: tokens.FHE.tempHardcoded.borrowAPY,
+                },
+                {
+                  coin: "USDF",
+                  name: tokens.USDF.name,
+                  amount: balance?.USDF.borrowBalance ?? 0n,
+                  apy: tokens.USDF.tempHardcoded.borrowAPY,
                 },
               ],
             }}
