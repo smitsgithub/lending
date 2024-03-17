@@ -161,7 +161,6 @@ export const SupplyBorrowCard = ({
     [noInfoRows, tab, coin, balance],
   );
 
-  let content = null;
   if (tab) {
     return (
       <Card className="p-6 relative">
@@ -185,7 +184,7 @@ export const SupplyBorrowCard = ({
       </Card>
     );
   } else if (defaultAction && defaultCoin) {
-    return (content = (
+    return (
       <Card className="p-6 relative">
         {isInProgress && <Spinner />}
         <CardContent
@@ -197,7 +196,7 @@ export const SupplyBorrowCard = ({
           onSubmit={onAmountConfirm}
         />
       </Card>
-    ));
+    );
   }
 };
 

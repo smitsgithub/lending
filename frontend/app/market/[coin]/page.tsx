@@ -121,7 +121,10 @@ export default function MarketPage() {
               series={[
                 {
                   name: "Pool utilization",
-                  data: [30, 40, 45, 50, 49, 60, 70, 91, 125],
+                  data:
+                    coin === "FHE" // FIXME:
+                      ? [30, 40, 45, 50, 49, 60, 70, 91, 125]
+                      : [50, 49, 60, 30, 40, 45, 70, 50, 48],
                 },
               ]}
               height={192}
