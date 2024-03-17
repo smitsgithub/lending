@@ -5,7 +5,7 @@ import "./FHERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interfaces/IAlphaReceiver.sol";
-import "./interfaces/ILendingPool.sol";
+import "./LendingPool.sol";
 import "./interfaces/IVestingAlpha.sol";
 import { FHE, euint16, inEuint16 } from "@fhenixprotocol/contracts/FHE.sol";
 
@@ -49,7 +49,7 @@ contract AlToken is FHERC20, Ownable, IAlphaReceiver, ReentrancyGuard {
   constructor(
     string memory _name,
     string memory _symbol,
-    ILendingPool _lendingPoolAddress,
+    LendingPool _lendingPoolAddress,
     FHERC20 _underlyingAsset
   ) FHERC20(_name, _symbol)  Ownable(msg.sender){
     lendingPool = _lendingPoolAddress;

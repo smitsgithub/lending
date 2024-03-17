@@ -322,7 +322,7 @@ contract LendingPool is Ownable, ILendingPool, IAlphaReceiver, ReentrancyGuard, 
     );
     pools[address(_token)] = pool;
     tokenList.push(_token);
-    emit PoolInitialized(address(_token), address(alToken), address(_poolConfig));
+    // emit PoolInitialized(address(_token), address(alToken), address(_poolConfig));
   }
 
   /**

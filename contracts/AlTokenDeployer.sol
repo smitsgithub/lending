@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "./FHERC20.sol";
-import "./interfaces/ILendingPool.sol";
+import "./LendingPool.sol";
 import "./AlToken.sol";
 
 /**
@@ -23,8 +23,7 @@ contract AlTokenDeployer {
     string memory _symbol,
     FHERC20 _underlyingAsset
   ) public returns (AlToken) {
-    AlToken alToken = new AlToken(_name, _symbol, ILendingPool(msg.sender), _underlyingAsset);
-    alToken.transferOwnership(msg.sender);
+    AlToken alToken = new AlToken(_name, _symbol, LendingPool(msg.sender), _underlyingAsset);
     return alToken;
   }
 }
