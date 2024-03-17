@@ -4,9 +4,19 @@ import { CoinSelect } from "./coinSelect";
 import { FunkyFontWrapper } from "./funkyFontWrapper";
 import { Input } from "./input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
-import { Action, Coin } from "../../commonTypes";
-import { cn } from "../../lib/utils";
+import { Action, Coin, RestorativeAction } from "../../commonTypes";
 import { MiniTable } from "./miniTable";
+
+const isRestorativeAction = (
+  action: Action | RestorativeAction,
+): action is RestorativeAction => action === "Repay" || action === "Withdraw";
+
+const actionTexts = {
+  Supply: "Supply",
+  Borrow: "Borrow",
+  Withdraw: "Withdraw",
+  Repay: "Repay",
+};
 
 export const CardContent = ({
   amount,
@@ -15,15 +25,17 @@ export const CardContent = ({
   onCoinChange,
   onSubmit,
   infoRows,
+  totalAmount,
   action,
 }: {
   amount: string;
+  totalAmount?: number;
   onAmountChange: (val: string) => void;
   coin: Coin;
-  onCoinChange: (val: Coin) => void;
+  onCoinChange?: (val: Coin) => void;
   onSubmit: () => void;
-  infoRows: { title: string; value: string }[];
-  action: Action;
+  infoRows?: { title: string; value: string }[];
+  action: Action | RestorativeAction;
 }) => {
   const amountChangeHandler: ChangeEventHandler<HTMLInputElement> = ({
     target: { value },
@@ -33,13 +45,17 @@ export const CardContent = ({
     }
   };
   const isValidAmount = !!amount;
+  const isRestorative = isRestorativeAction(action);
   return (
     <>
       <FunkyFontWrapper className="text-2xl py-4">
-        You {action === "Supply" ? "supply" : "borrow"}
+        You {actionTexts[action]?.toLocaleLowerCase()}{" "}
+        {isRestorative
+          ? `(${totalAmount ? `out of ${totalAmount} ${coin}` : coin})`
+          : ""}
       </FunkyFontWrapper>
       <div className="flex flex-row gap-3 mb-4">
-        <CoinSelect onChange={onCoinChange} value={coin} />
+        {onCoinChange && <CoinSelect onChange={onCoinChange} value={coin} />}
         <Input
           placeholder="E.g.: 0.1"
           value={amount}
@@ -54,14 +70,16 @@ export const CardContent = ({
             onClick={onSubmit}
             disabled={!isValidAmount}
           >
-            {action === "Supply" ? "Supply" : "Borrow"} {coin}
+            {actionTexts[action]} {coin}
           </Button>
         </TooltipTrigger>
         {!isValidAmount && (
           <TooltipContent side="bottom">Please, provide amount</TooltipContent>
         )}
       </Tooltip>
-      <MiniTable rounded infoRows={infoRows} />
+      {!isRestorative && !!infoRows?.length && (
+        <MiniTable rounded infoRows={infoRows} />
+      )}
     </>
   );
 };

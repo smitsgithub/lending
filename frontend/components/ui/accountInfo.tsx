@@ -1,6 +1,7 @@
 import { cn } from "../../lib/utils";
 import { CircularProgress } from "./circularProgress";
 import { FunkyFontWrapper } from "./funkyFontWrapper";
+import { Hidable } from "./hidable";
 import { Icon } from "./icons";
 import { VerticalDivider } from "./verticalDivider";
 
@@ -33,10 +34,10 @@ export const AccountInfo = () => {
             key={i.title}
             title={i.title}
             value={
-              <>
+              <Hidable>
                 <span className="pr-2">{i.value}</span>
                 {coins}
-              </>
+              </Hidable>
             }
           />
         );
@@ -46,10 +47,10 @@ export const AccountInfo = () => {
         title="ACCOUNT HEALTH"
         floatRight
         value={
-          <>
+          <Hidable>
             <span className="pr-2 text-green-500">47%</span>
             <CircularProgress percent={47} width={21} height={21} />
-          </>
+          </Hidable>
         }
       />
     </section>
@@ -74,7 +75,7 @@ const AccountInfoItem = ({
           floatRight && "justify-end",
         )}
       >
-        {value}
+        <Hidable>{value}</Hidable>
       </FunkyFontWrapper>
     </div>
   );

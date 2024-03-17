@@ -10,6 +10,7 @@ import {
 } from "./accordion";
 import { Button } from "./button";
 import { MiniTable } from "./miniTable";
+import { Hidable } from "./hidable";
 
 export const YourPositions = ({
   supplying,
@@ -20,7 +21,11 @@ export const YourPositions = ({
   supplying: { positions: Position[]; total: number };
   borrowing: { positions: Position[]; total: number };
   netValue: number;
-  onAction: (action: Action | RestorativeAction, position: Coin) => void;
+  onAction: (
+    action: Action | RestorativeAction,
+    position: Coin,
+    amount?: number,
+  ) => void;
 }) => {
   return (
     <section className="flex flex-col gap-4">
@@ -29,7 +34,7 @@ export const YourPositions = ({
           Your Positions
         </FunkyFontWrapper>
         <FunkyFontWrapper className="text-xl">
-          Net: ${netValue}
+          Net: <Hidable>{netValue}</Hidable>
         </FunkyFontWrapper>
       </div>
       <section className="flex flex-col sm:flex-row gap-6 sm:items-start">
@@ -40,7 +45,11 @@ export const YourPositions = ({
             </FunkyFontWrapper>
             <div className="flex flex-row gap-1 items-center">
               <span className="text-xs opacity-40">Total Supply</span>
-              <span className="text-sm text-slate-600">${supplying.total}</span>
+              <Hidable>
+                <span className="text-sm text-slate-600">
+                  ${supplying.total}
+                </span>
+              </Hidable>
             </div>
           </div>
           <div className="flex flex-col gap-2">
@@ -49,7 +58,7 @@ export const YourPositions = ({
                 onAction={onAction}
                 key={position.coin}
                 position={position}
-                type="Borrow"
+                type="Supply"
               />
             ))}
           </div>
@@ -61,7 +70,11 @@ export const YourPositions = ({
             </FunkyFontWrapper>
             <div className="flex flex-row gap-1 items-center">
               <span className="text-xs opacity-40">Total Borrow</span>
-              <span className="text-sm text-slate-600">${supplying.total}</span>
+              <Hidable>
+                <span className="text-sm text-slate-600">
+                  ${supplying.total}
+                </span>
+              </Hidable>
             </div>
           </div>
           <div className="flex flex-col gap-2">
@@ -70,7 +83,7 @@ export const YourPositions = ({
                 onAction={onAction}
                 key={position.coin}
                 position={position}
-                type="Supply"
+                type="Borrow"
               />
             ))}
           </div>
@@ -87,7 +100,11 @@ export const PositionCard = ({
 }: {
   position: Position;
   type: Action;
-  onAction: (action: Action | RestorativeAction, position: Coin) => void;
+  onAction: (
+    action: Action | RestorativeAction,
+    position: Coin,
+    amount?: number,
+  ) => void;
 }) => {
   const data = useMemo(
     () => ({
@@ -112,7 +129,9 @@ export const PositionCard = ({
                 {type === "Borrow" ? "Borrowing" : "Supplying"}
               </div>
               <div className="text-sm font-semibold">
-                {position.amount} {position.coin}
+                <Hidable>
+                  {position.amount} {position.coin}
+                </Hidable>
               </div>
             </div>
           </AccordionTrigger>
@@ -133,19 +152,20 @@ export const PositionCard = ({
                 variant="secondary"
                 onClick={() =>
                   onAction(
-                    type === "Borrow" ? "Withdraw" : "Repay",
+                    type === "Borrow" ? "Repay" : "Withdraw",
                     position.coin,
+                    position.amount,
                   )
                 }
               >
-                {type === "Borrow" ? "Withdraw" : "Repay"}
+                {type === "Borrow" ? "Repay" : "Withdraw"}
               </Button>
               <Button
                 className="grow"
                 variant="secondary"
                 onClick={() => onAction(type, position.coin)}
               >
-                {type === "Borrow" ? "Supply More" : "Borrow More"}
+                {type === "Borrow" ? "Borrow More" : "Supply More"}
               </Button>
             </div>
           </AccordionContent>
