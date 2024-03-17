@@ -14,7 +14,8 @@ import { Header } from "../components/ui/header";
 import { Footer } from "../components/ui/footer/footer";
 import React from "react";
 import { UserContextProvider } from "../components/ui/userContextProvider";
-import { ConnectionRequired } from "../components/ui/connectionRequired";
+import logoSvg from "./logo.svg";
+import { BalanceProvider } from "../components/ui/balanceProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,28 +39,50 @@ export default function RootLayout({
       >
         <DynamicContextProvider
           settings={{
+            appLogoUrl: logoSvg.src,
+            appName: "shadefi",
             environmentId: "2762a57b-faa4-41ce-9f16-abff9300e2c9",
+            evmNetworks: [
+              {
+                blockExplorerUrls: ["https://explorer.testnet.fhenix.zone/"],
+                chainId: 42069,
+                chainName: "Fhenix Frontier",
+                iconUrls: [logoSvg.src],
+                name: "Fhenix",
+                nativeCurrency: {
+                  decimals: 18,
+                  name: "Fhenix",
+                  symbol: "tFHE",
+                },
+                networkId: 42069,
+                rpcUrls: ["https://api.testnet.fhenix.zone:7747/"],
+                vanityName: "Fhenix F",
+              },
+            ],
+            // walletsFilter: FilterChain("tFHE"),
             walletConnectors: [EthereumWalletConnectors],
             walletConnectorExtensions: [EthersExtension],
           }}
         >
           <DynamicWagmiConnector>
             <UserContextProvider>
-              <TooltipProvider>
-                <div
-                  className="max-w-[1240px] w-full flex flex-col bg-no-repeat bg-cover flex-grow"
-                  style={{
-                    backgroundImage: `url('${bgSrc.src}')`,
-                    backgroundSize: "80%",
-                    backgroundPositionY: 280,
-                    backgroundPositionX: "center",
-                  }}
-                >
-                  <Header />
-                  {children}
-                </div>
-                <Footer />
-              </TooltipProvider>
+              <BalanceProvider>
+                <TooltipProvider>
+                  <div
+                    className="max-w-[1240px] w-full flex flex-col bg-no-repeat bg-cover flex-grow"
+                    style={{
+                      backgroundImage: `url('${bgSrc.src}')`,
+                      backgroundSize: "80%",
+                      backgroundPositionY: 280,
+                      backgroundPositionX: "center",
+                    }}
+                  >
+                    <Header />
+                    {children}
+                  </div>
+                  <Footer />
+                </TooltipProvider>
+              </BalanceProvider>
             </UserContextProvider>
           </DynamicWagmiConnector>
         </DynamicContextProvider>

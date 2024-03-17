@@ -1,11 +1,9 @@
 import { FC, SVGProps } from "react";
-import { AVAXIcon } from "./avax";
 import { ETHIcon } from "./eth";
-import { FTXIcon } from "./ftx";
-import { Coin } from "../../../commonTypes";
+import { ProperCoin } from "../../../commonTypes";
+import { AVAXIcon } from "./avax";
 
-export const Icon: Record<Coin, FC<SVGProps<SVGSVGElement>>> = {
-  ETH: ETHIcon,
-  FTX: FTXIcon,
-  AVAX: AVAXIcon,
+export const Icon: Record<ProperCoin, FC<SVGProps<SVGSVGElement>>> = {
+  FHE: ETHIcon,
+  USDF: AVAXIcon,
 };

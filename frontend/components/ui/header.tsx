@@ -2,8 +2,9 @@
 import { DynamicWidget, useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { Logo } from "./logo";
 import { Button } from "./button";
-import { SVGProps, useContext, useEffect, useState } from "react";
+import { SVGProps, useContext, useEffect, useMemo, useState } from "react";
 import { UserContext } from "./userContextProvider";
+import { BalanceContext } from "./balanceProvider";
 
 export function Header() {
   const { setShowAuthFlow, isAuthenticated } = useDynamicContext();
@@ -14,26 +15,25 @@ export function Header() {
     setIsClient(true);
   }, []);
 
-  const { debugToggleHideData, hideData } = useContext(UserContext);
+  const { getPermission } = useContext(UserContext);
+  const { balance } = useContext(BalanceContext);
 
   return (
     <header className="flex flex-col justify-between mt-12 mx-5 sm:flex-row gap-6 items-center">
       <Logo />
       <div className="flex flex-row sm:flex-row gap-5">
-        {isAuthenticated && isClient ? (
-          <>
+        <>
+          {isAuthenticated && !balance && (
             <Button
-              onClick={debugToggleHideData}
+              onClick={getPermission}
               className="bg-[#7C3AED] hover:bg-[#7C3AED]/90"
             >
               <EyeIcon className={"mr-2"} />
-              {hideData ? "View Balances" : "Hide Balances"}
+              View Balances
             </Button>
-            <DynamicWidget />
-          </>
-        ) : (
-          <Button onClick={onConnect}>Connect Wallet</Button>
-        )}
+          )}
+          <DynamicWidget />
+        </>
       </div>
     </header>
   );

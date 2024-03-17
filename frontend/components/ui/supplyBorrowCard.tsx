@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Action, Coin, RestorativeAction } from "../../commonTypes";
+import { Action, ProperCoin, RestorativeAction } from "../../commonTypes";
 import { Card } from "./card";
 import { Tabs, TabsList, TabsTrigger } from "./tabs";
 import { CardContent } from "./lendTabContent";
@@ -14,8 +14,8 @@ export const SupplyBorrowCard = ({
   noInfoRows,
 }: {
   defaultAction?: Action | RestorativeAction;
-  defaultCoin?: Coin;
-  totalAmount?: number;
+  defaultCoin?: ProperCoin;
+  totalAmount?: string;
   noInfoRows?: boolean;
 }) => {
   const [tab, setTab] = useState<Action | null>(
@@ -24,7 +24,7 @@ export const SupplyBorrowCard = ({
       : defaultAction ?? "Supply",
   );
   const [amount, setAmount] = useState("");
-  const [coin, setCoin] = useState<Coin>(defaultCoin ?? "ETH");
+  const [coin, setCoin] = useState<ProperCoin>(defaultCoin ?? "FHE");
 
   const onAmountConfirm = useCallback(() => {
     if (!amount || !coin) return;

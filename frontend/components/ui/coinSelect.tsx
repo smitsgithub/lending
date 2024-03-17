@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./select";
-import { Coin } from "../../commonTypes";
+import { ProperCoin } from "../../commonTypes";
 
 const iconProps = {
   width: 28,
@@ -17,32 +17,31 @@ export const CoinSelect = ({
   value,
   onChange,
 }: {
-  value: Coin;
-  onChange: (val: Coin) => void;
+  value: ProperCoin;
+  onChange: (val: ProperCoin) => void;
 }) => {
   return (
-    <Select onValueChange={(val) => onChange(val as Coin)} value={value}>
+    <Select onValueChange={(val) => onChange(val as ProperCoin)} value={value}>
       <SelectTrigger className="w-[142px] shrink-0">
         <CoinSelectValue coin={value} />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <CoinSelectItem coin="ETH" />
-          <CoinSelectItem coin="FTX" />
-          <CoinSelectItem coin="AVAX" />
+          <CoinSelectItem coin="FHE" />
+          <CoinSelectItem coin="USDF" />
         </SelectGroup>
       </SelectContent>
     </Select>
   );
 };
 
-const CoinSelectItem = ({ coin }: { coin: Coin }) => (
+const CoinSelectItem = ({ coin }: { coin: ProperCoin }) => (
   <SelectItem value={coin}>
     <CoinSelectValue coin={coin} />
   </SelectItem>
 );
 
-const CoinSelectValue = ({ coin }: { coin: Coin }) => {
+const CoinSelectValue = ({ coin }: { coin: ProperCoin }) => {
   const IconComponent = Icon[coin];
   return (
     <SelectValue>
