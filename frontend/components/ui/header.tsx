@@ -5,6 +5,13 @@ import { Button } from "./button";
 import { SVGProps, useContext, useEffect, useMemo, useState } from "react";
 import { UserContext } from "./userContextProvider";
 import { BalanceContext } from "./balanceProvider";
+import { ToggleGroup, ToggleGroupItem } from "./toggle-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
+import { FunkyFontWrapper } from "./funkyFontWrapper";
 
 export function Header() {
   const { setShowAuthFlow, isAuthenticated } = useDynamicContext();
@@ -19,8 +26,18 @@ export function Header() {
   const { balance } = useContext(BalanceContext);
 
   return (
-    <header className="flex flex-col justify-between mt-12 mx-5 sm:flex-row gap-6 items-center">
-      <Logo />
+    <header className="flex flex-col justify-between mt-12 mx-5 sm:flex-row gap-6 items-center relative">
+      <div className="flex flex-row gap-5">
+        <Logo />
+        <ToggleGroup variant="outline" type="single" value="Tokens">
+          <ToggleGroupItem value="Tokens" aria-label="Toggle bold">
+            Tokens
+          </ToggleGroupItem>
+          <ToggleGroupItem disabled value="NFTs" aria-label="Toggle NFT">
+            NFTs
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
       <div className="flex flex-row sm:flex-row gap-5">
         <>
           {isAuthenticated && !balance && (

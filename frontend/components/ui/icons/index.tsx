@@ -1,9 +1,17 @@
-import { FC, SVGProps } from "react";
-import { ETHIcon } from "./eth";
+import { FC } from "react";
 import { Token } from "../../../commonTypes";
-import { AVAXIcon } from "./avax";
+import { FHEIcon } from "./FHEIcon";
+import { USDFIcon } from "./USDFIcon";
 
-export const Icon: Record<Token, FC<SVGProps<SVGSVGElement>>> = {
-  FHE: ETHIcon,
-  USDF: AVAXIcon,
+export const Icon: Record<
+  Token,
+  FC<{
+    width?: number;
+    height?: number;
+    className?: string;
+    style?: React.CSSProperties;
+  }>
+> = {
+  FHE: FHEIcon,
+  USDF: USDFIcon,
 };

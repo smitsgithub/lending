@@ -14,9 +14,9 @@ import { Header } from "../components/ui/header";
 import { Footer } from "../components/ui/footer/footer";
 import React from "react";
 import { UserContextProvider } from "../components/ui/userContextProvider";
-import logoSvg from "./logo.svg";
 import { BalanceProvider } from "../components/ui/balanceProvider";
 import { SuccessDialogRoot } from "../components/ui/successDialogRoot";
+import icon from "../components/ui/icons/FHEIcon.png";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,7 +40,7 @@ export default function RootLayout({
       >
         <DynamicContextProvider
           settings={{
-            appLogoUrl: logoSvg.src,
+            appLogoUrl: icon.src,
             appName: "shadefi",
             environmentId: "2762a57b-faa4-41ce-9f16-abff9300e2c9",
             evmNetworks: [
@@ -48,7 +48,7 @@ export default function RootLayout({
                 blockExplorerUrls: ["https://explorer.testnet.fhenix.zone/"],
                 chainId: 42069,
                 chainName: "Fhenix Frontier",
-                iconUrls: [logoSvg.src],
+                iconUrls: [icon.src],
                 name: "Fhenix",
                 nativeCurrency: {
                   decimals: 18,

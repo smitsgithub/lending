@@ -74,7 +74,9 @@ export const CardContent = ({
           </Button>
         </TooltipTrigger>
         {!isValidAmount && (
-          <TooltipContent side="bottom">Please, provide amount</TooltipContent>
+          <TooltipContent side="bottom">
+            <FunkyFontWrapper>Please, provide amount</FunkyFontWrapper>
+          </TooltipContent>
         )}
       </Tooltip>
       {!isRestorative && !!infoRows?.length && (
