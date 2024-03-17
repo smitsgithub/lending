@@ -11,24 +11,37 @@ import { ethers } from "ethers";
 import { abi } from "../../abi/MockLandingPoolAbi";
 import { generatePermits, lendingPoolAddress, provider } from "../../permits";
 import { Permission } from "fhenixjs";
-import { SuccessDialog } from "./successDialog";
+import { Action, Token } from "../../commonTypes";
 
+export type SuccessDialogProps = {
+  action: Action;
+  coin: Token;
+  amount: number;
+};
+
+// const DEBUG = {
+//   coin: "FHE",
+//   action: "Supply",
+//   amount: 100,
+// } as const;
 export const UserContext = createContext<{
   permission?: Permission;
   tokenInContract?: ethers.Contract;
   getPermission: () => void;
-  successDialogOpen: boolean;
-  setSuccessDialogOpen: (val: boolean) => void;
+  successDialogProps?: SuccessDialogProps;
+  setSuccessDialogProps: (val?: SuccessDialogProps) => void;
 }>({
   getPermission: () => {},
-  successDialogOpen: false,
-  setSuccessDialogOpen: () => {},
+  successDialogProps: undefined,
+  setSuccessDialogProps: () => {},
 });
 
 export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   const [tokenInContract, setTokenInContract] = useState<ethers.Contract>();
   const [permission, setPermission] = useState<Permission>();
-  const [successDialogOpen, setSuccessDialogOpen] = useState<boolean>(false);
+  const [successDialogProps, setSuccessDialogProps] = useState<
+    SuccessDialogProps | undefined
+  >(undefined);
   useEffect(() => {
     (async () => {
       const signer = await provider.getSigner();
@@ -48,14 +61,13 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
   return (
     <UserContext.Provider
       value={{
-        successDialogOpen,
-        setSuccessDialogOpen,
+        successDialogProps,
+        setSuccessDialogProps,
         tokenInContract,
         getPermission,
         permission,
       }}
     >
-      {successDialogOpen && <SuccessDialog dialogProps={null} />}
       {children}
     </UserContext.Provider>
   );

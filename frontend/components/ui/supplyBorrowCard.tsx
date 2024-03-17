@@ -23,7 +23,7 @@ export const SupplyBorrowCard = ({
   defaultCoin?: Token;
   totalAmount?: string;
   noInfoRows?: boolean;
-  onDone?: (operation: { coin: Token; amount: number; action: Action }) => void;
+  onDone?: () => void;
 }) => {
   const [tab, setTab] = useState<Action | null>(
     defaultAction === "Repay" || defaultAction === "Withdraw"
@@ -36,7 +36,7 @@ export const SupplyBorrowCard = ({
   const { toast } = useToast();
 
   const { balance, reRequestBalance } = useContext(BalanceContext);
-  const { tokenInContract } = useContext(UserContext);
+  const { tokenInContract, setSuccessDialogProps } = useContext(UserContext);
 
   const onAmountConfirm = useCallback(async () => {
     if (!amount || !coin || isInProgress) return;
@@ -56,11 +56,14 @@ export const SupplyBorrowCard = ({
             encryptedAmount,
           );
           reRequestBalance();
-          onDone?.({
+          onDone?.();
+
+          setSuccessDialogProps({
+            action: "Supply",
             coin,
             amount: amountNum,
-            action: "Supply",
           });
+          console.log("SUCCESS");
         } catch (err) {
           toast({
             title: "Unexpected Error",
@@ -81,11 +84,14 @@ export const SupplyBorrowCard = ({
             encryptedAmount,
           );
           reRequestBalance();
-          onDone?.({
+          onDone?.();
+
+          setSuccessDialogProps({
+            action: "Borrow",
             coin,
             amount: amountNum,
-            action: "Borrow",
           });
+          console.log("SUCCESS");
         } catch (err) {
           toast({ title: "Unexpected Error", description: "Failed to borrow" });
           console.error({ borrow: err });
@@ -93,7 +99,17 @@ export const SupplyBorrowCard = ({
         setIsInProgress(false);
         break;
     }
-  }, [amount, coin, isInProgress, onDone, tab, toast, tokenInContract]);
+  }, [
+    amount,
+    coin,
+    isInProgress,
+    onDone,
+    reRequestBalance,
+    setSuccessDialogProps,
+    tab,
+    toast,
+    tokenInContract,
+  ]);
 
   const path = usePathname();
   useEffect(() => {

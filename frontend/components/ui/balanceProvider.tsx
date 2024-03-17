@@ -12,6 +12,7 @@ import {
 
 import { Token, UserBalance } from "../../commonTypes";
 import { useUserPoolData } from "../../hooks/useUserPoolData";
+import { SuccessDialog } from "./successDialog";
 
 export const BalanceContext = createContext<{
   balance: Record<Token, UserBalance> | undefined;

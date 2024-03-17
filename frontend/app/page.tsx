@@ -7,12 +7,10 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { CardDialog } from "../components/ui/cardDialog";
 import { Action, Token, RestorativeAction, tokens } from "../commonTypes";
 import { ConnectionRequired } from "../components/ui/connectionRequired";
-import { useUserPoolData } from "../hooks/useUserPoolData";
 import { BalanceContext } from "../components/ui/balanceProvider";
 
 global.document?.documentElement.style.setProperty("--gradient-step", "580px");
 export default function Home() {
-  useUserPoolData("FHE");
   useEffect(() => {
     global.document?.documentElement.style.setProperty(
       "--gradient-step",

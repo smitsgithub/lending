@@ -16,6 +16,7 @@ import React from "react";
 import { UserContextProvider } from "../components/ui/userContextProvider";
 import logoSvg from "./logo.svg";
 import { BalanceProvider } from "../components/ui/balanceProvider";
+import { SuccessDialogRoot } from "../components/ui/successDialogRoot";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -68,19 +69,21 @@ export default function RootLayout({
             <UserContextProvider>
               <BalanceProvider>
                 <TooltipProvider>
-                  <div
-                    className="max-w-[1240px] w-full flex flex-col bg-no-repeat bg-cover flex-grow"
-                    style={{
-                      backgroundImage: `url('${bgSrc.src}')`,
-                      backgroundSize: "80%",
-                      backgroundPositionY: 280,
-                      backgroundPositionX: "center",
-                    }}
-                  >
-                    <Header />
-                    {children}
-                  </div>
-                  <Footer />
+                  <SuccessDialogRoot>
+                    <div
+                      className="max-w-[1240px] w-full flex flex-col bg-no-repeat bg-cover flex-grow"
+                      style={{
+                        backgroundImage: `url('${bgSrc.src}')`,
+                        backgroundSize: "80%",
+                        backgroundPositionY: 280,
+                        backgroundPositionX: "center",
+                      }}
+                    >
+                      <Header />
+                      {children}
+                    </div>
+                    <Footer />
+                  </SuccessDialogRoot>
                 </TooltipProvider>
               </BalanceProvider>
             </UserContextProvider>
