@@ -11,6 +11,7 @@ import { ethers } from "ethers";
 import { abi } from "../../abi/MockLandingPoolAbi";
 import { generatePermits, lendingPoolAddress, provider } from "../../permits";
 import { Permission } from "fhenixjs";
+import { SuccessDialog } from "./successDialog";
 
 export const UserContext = createContext<{
   permission?: Permission;
@@ -54,6 +55,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
         permission,
       }}
     >
+      {successDialogOpen && <SuccessDialog dialogProps={null} />}
       {children}
     </UserContext.Provider>
   );

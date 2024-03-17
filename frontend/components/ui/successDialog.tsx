@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import NounBorrowed from "./NounsBorrowed.gif";
+import NounBorrowed from "./NounBorrowed.gif";
 import NounSupplied from "./NounSupplied.gif";
 import { Action, ProperCoin, RestorativeAction } from "../../commonTypes";
 const srcByAction = {
