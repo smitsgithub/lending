@@ -5,7 +5,11 @@ export const CardDialog = ({
   dialogProps,
   onOpenChange,
 }: {
-  dialogProps: { action: Action | RestorativeAction; coin: Coin } | null;
+  dialogProps: {
+    action: Action | RestorativeAction;
+    coin: Coin;
+    amount?: number;
+  } | null;
   onOpenChange?(open: boolean): void;
 }) => {
   return (
@@ -15,6 +19,7 @@ export const CardDialog = ({
           <SupplyBorrowCard
             defaultAction={dialogProps.action}
             defaultCoin={dialogProps.coin}
+            totalAmount={dialogProps.amount}
           />
         </DialogContent>
       </Dialog>

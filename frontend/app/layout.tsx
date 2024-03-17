@@ -12,6 +12,9 @@ import { cn } from "../lib/utils";
 import { TooltipProvider } from "../components/ui/tooltip";
 import { Header } from "../components/ui/header";
 import { Footer } from "../components/ui/footer/footer";
+import React from "react";
+import { UserContextProvider } from "../components/ui/userContextProvider";
+import { ConnectionRequired } from "../components/ui/connectionRequired";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,21 +44,23 @@ export default function RootLayout({
           }}
         >
           <DynamicWagmiConnector>
-            <TooltipProvider>
-              <div
-                className="max-w-[1240px] w-full flex flex-col bg-no-repeat bg-cover flex-grow"
-                style={{
-                  backgroundImage: `url('${bgSrc.src}')`,
-                  backgroundSize: "80%",
-                  backgroundPositionY: 280,
-                  backgroundPositionX: "center",
-                }}
-              >
-                <Header />
-                {children}
-              </div>
-              <Footer />
-            </TooltipProvider>
+            <UserContextProvider>
+              <TooltipProvider>
+                <div
+                  className="max-w-[1240px] w-full flex flex-col bg-no-repeat bg-cover flex-grow"
+                  style={{
+                    backgroundImage: `url('${bgSrc.src}')`,
+                    backgroundSize: "80%",
+                    backgroundPositionY: 280,
+                    backgroundPositionX: "center",
+                  }}
+                >
+                  <Header />
+                  {children}
+                </div>
+                <Footer />
+              </TooltipProvider>
+            </UserContextProvider>
           </DynamicWagmiConnector>
         </DynamicContextProvider>
       </body>

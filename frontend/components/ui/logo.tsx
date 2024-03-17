@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 
 export const Logo = () => {
   const path = usePathname();
-  console.log({ path });
   return path !== "/" ? (
     <Link href="/" className="flex items-end self-start cursor-pointer">
       <LogoSVG />
